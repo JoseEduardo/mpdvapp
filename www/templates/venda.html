@@ -1,0 +1,25 @@
+<ion-view title="venda" id="page6" class=" ">
+    <ion-content padding="true" class="has-header">
+        <form id="venda-form3" class="list ">
+            <div ng-controller="vendaCtrl">
+                <input ng-model="barcodeNumber" ng-change="searchBarCode(barcodeNumber)" style="border:1px solid #ddd; display:inline; width: 50%; border-radius: 2px" type="text" name="barcode"><b>x</b>
+                <input ng-model="qtyProd" style="border:1px solid #ddd; display:inline; width: 45%; border-radius: 2px" type="text" name="qt">
+
+                <button ng-show="!currentItem" ng-controller="barcodeCtrl" id="venda-button16" style="width:48% !important; display:inline;" ng-click="scanBarcode()" class="button button-positive button-block ">SCAN</button>
+                <button ng-show="currentItem" ng-controller="barcodeCtrl" id="venda-button18" style="width:48% !important; display:inline;" ng-click="addToCart()" class="button button-positive button-block ">ADICIONAR</button>
+                <button id="venda-button11" style="width:50% !important; display:inline;" class=" button button-balanced  button-block ">FINALIZAR</button>
+                <p id="venda-markdown2" style="color:#000000;" class=" ">{{cartItens.length}} itens no Carrinho - R$ 2500,36</p>
+
+                    <ion-list>
+                        <ion-item-sliding ng-repeat="x in cartItens">
+                            <ion-item class="item-icon-right">
+                            [{{ x.QTY }}]  {{ x.NAME }} - {{ x.PRICE }}
+                            <i class="icon ion-close-round" ng-click="removeFromCart(x)"></i>
+                            </ion-item>
+                        </ion-item-sliding>
+                    </ion-list>
+
+            </div>
+        </form>
+    </ion-content>
+</ion-view>

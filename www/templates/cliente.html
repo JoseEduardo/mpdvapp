@@ -1,0 +1,17 @@
+<ion-view title="Cliente" id="page7" class=" ">
+    <ion-content ng-controller="clienteCtrl" padding="true" class="has-header">
+        <form id="cliente-form4" class="list ">
+            <label class="item item-input " id="cliente-textarea3">
+                <input type="text" ng-model="customerDocument" placeholder="Email/CPF do Cliente" ng-change="searchCustomer(customerDocument)"></input>
+            </label>
+        </form>
+        <div>
+            <ion-list id="venda-list1" ng-repeat="x in customer">
+                <ion-item>Nome: {{ x.FIRSTNAME }} - {{ x.LASTNAME }}</ion-item>
+            </ion-list>
+            <ion-list id="venda-list2" ng-repeat="x in addressCustomer">
+                <ion-item>{{ x.STREET }} - {{ x.REGION }}</ion-item>
+            </ion-list>
+        </div>
+    </ion-content>
+</ion-view>
