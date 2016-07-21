@@ -21,3 +21,9 @@ angular.module('app', ['ionic', 'ngCordova', 'app.controllers', 'app.routes', 'a
     }
   });
 })
+
+.run(['$rootScope',
+  function ($rootScope) {
+   $rootScope.variavelGlobal = "contruct";
+  }
+]);

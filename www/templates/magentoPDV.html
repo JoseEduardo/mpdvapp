@@ -1,11 +1,12 @@
 <ion-view title="Magento PDV" id="page2" class=" ">
     <ion-content padding="true" class="has-header">
-        <div class="">
-            <img src="img/kbYqrwmnTj2hGPMBBxuO_magento.jpg" width="50%" height="100" style="display: block; margin-left: auto; margin-right: auto;">
-        </div>
-        <h4 id="magentoPDV-heading1" style="color:#000000;text-align:center;" class=" ">1204 Produto(s)</h4>
-        <h4 id="magentoPDV-heading4" style="color:#000000;text-align:center;" class=" ">3 Venda(s)</h4>
-        <div ng-controller="APICtrl">
+        <div ng-controller="APICtrl" data-ng-init="loadConfiguration()">
+            <div>
+                <img src="img/kbYqrwmnTj2hGPMBBxuO_magento.jpg" width="50%" height="100" style="display: block; margin-left: auto; margin-right: auto;">
+            </div>
+            <h4 id="magentoPDV-heading1" data-ng-init="getAllProducts()" style="color:#000000;text-align:center;" class=" ">{{ countProd }} Produto(s)</h4>
+            <h4 id="magentoPDV-heading4" data-ng-init="getAllOrders()" style="color:#000000;text-align:center;" class=" ">{{ countOrders }} Venda(s)</h4>
+
             <div ng-show="!showInterface">
                 <img style="margin-left: 25%" src="img/spinner.gif" alt="loading" height="150" width="180">
             </div>

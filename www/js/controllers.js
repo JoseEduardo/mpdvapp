@@ -4,10 +4,11 @@ angular.module('app.controllers', [])
 
 })
 
-.controller('APICtrl', function($scope, $http, productFactory, configurationFactory, customerFactory, customerAddressFactory) {
+.controller('APICtrl', function($scope, $http, $rootScope, productFactory, configurationFactory, customerFactory, customerAddressFactory, salesOrderFactory) {
   //http://magepdv-shaykie.rhcloud.com/products.php?WS_URL=http://magento.db1.com.br/magento_hom/index.php&WS_USER=anymarket&WS_PASSWORD=anymarket&PORC_STOCK=100
     $scope.showInterface = true; 
     $scope.conn = [];
+    $scope.countProd = 0;
     var URLPHPCTRL = 'http://magepdv-shaykie.rhcloud.com';
     $scope.saveConfiguration = function() {
       configurationFactory.deleteAll();
@@ -24,6 +25,20 @@ angular.module('app.controllers', [])
         $scope.conn.WS_LOGIN = result.WS_LOGIN;
         $scope.conn.WS_PASS = result.WS_PASS;
         $scope.conn.STOCK = result.STOCK;
+      });
+    }
+
+    $scope.getAllProducts = function() {
+      $scope.loadConfiguration();
+      productFactory.count().then(function(result) {
+        $scope.countProd = result.TOTPROD;
+      });
+    }
+
+    $scope.getAllOrders = function() {
+      $scope.loadConfiguration();
+      salesOrderFactory.count().then(function(result) {
+        $scope.countOrders = result.TOTORDER;
       });
     }
 
@@ -67,7 +82,6 @@ angular.module('app.controllers', [])
               for (var i = 0; i <= data.length-1; i++) {
                 $scope.address = data[i].address;
                 customerFactory.insert(data[i].firstname, data[i].lastname, data[i].email, data[i].taxvat).then(function(result){
-
                   address = $scope.address;
                   for (var x = 0; x <= address.length-1; x++) {
                     customerAddressFactory.insert(result, address[x].customer_address_id, address[x].street, address[x].region);
@@ -92,9 +106,10 @@ angular.module('app.controllers', [])
 
 })
 
-.controller('vendaCtrl', function($scope, productFactory) {
-    $scope.cartItens = [];
+.controller('vendaCtrl', function($scope, $rootScope, $ionicModal, productFactory, salesOrderFactory, salesOrderItemFactory) {
     $scope.currentItem = null;
+    $rootScope.totCar = 0;
+    $rootScope.cartItens = [];
 
     $scope.searchBarCode = function(sku) {
       productFactory.select(sku).then(function(result) {
@@ -105,49 +120,113 @@ angular.module('app.controllers', [])
 
     $scope.addToCart = function() {
       var itemEx = false;
-      for(i = 0; i < $scope.cartItens.length; i++) { 
-        if($scope.cartItens[i].ID == $scope.currentItem.ID){
-          $scope.cartItens[i].QTY = Number($scope.cartItens[i].QTY)+Number($scope.qtyProd);
+      $rootScope.totCar = 0;
+      for(i = 0; i < $rootScope.cartItens.length; i++) { 
+        if($rootScope.cartItens[i].ID == $scope.currentItem.ID){
+          $rootScope.cartItens[i].QTY = Number($rootScope.cartItens[i].QTY)+Number($scope.qtyProd);
           itemEx = true;
-          break;
         } 
+
+        $rootScope.totCar += Number($rootScope.cartItens[i].QTY)*Number($rootScope.cartItens[i].PRICE);
       }
 
       if(itemEx == false){
         $scope.currentItem.QTY = $scope.qtyProd;
-        $scope.cartItens.push($scope.currentItem);
+        $rootScope.cartItens.push($scope.currentItem);
+
+        $rootScope.totCar += Number($scope.currentItem.QTY)*Number($scope.currentItem.PRICE);
       }
 
+      $scope.barcodeNumber = null;
       $scope.currentItem = null;
     };    
 
     $scope.removeFromCart = function(item) {
-      for(i = 0; i < $scope.cartItens.length; i++) { 
-        if($scope.cartItens[i] == item){
-          $scope.cartItens.splice(i, 1);
-        } 
+      $rootScope.totCar = 0;
+      for(i = 0; i < $rootScope.cartItens.length; i++) { 
+        if($rootScope.cartItens[i] == item){
+          $rootScope.cartItens.splice(i, 1);
+        }else{
+          $rootScope.totCar += Number($rootScope.cartItens[i].QTY)*Number($rootScope.cartItens[i].PRICE);
+        }   
       }
     }; 
 
+    $scope.editQtyCart = function(item) {
+      $scope.modal.show();
+      $scope.edtItem = item.NAME;
+      $rootScope.qtyItemEDT = item.QTY;
+
+      $rootScope.itemForEdit = item;
+    }; 
+
+    $scope.placeOrder = function() {
+      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'freeshipping_freeshipping', 'checkmo', 'N').then(function(result){
+        for (var i = 0; i <= $rootScope.cartItens.length - 1; i++) {
+          salesOrderItemFactory.insert(result, $rootScope.cartItens[i].ID, $rootScope.cartItens[i].QTY);
+        };
+
+        $rootScope.totCar = 0;
+        $rootScope.cartItens = []; 
+      });
+    }; 
+
+    $ionicModal.fromTemplateUrl('editcart.html', {
+      scope: $scope,
+      animation: 'slide-in-up'
+    }).then(function(modal) {
+      $scope.modal = modal;
+    });
+
+    $scope.closeModal = function() {
+      $scope.modal.hide();
+    };
+
+    $scope.acceptModal = function(qtyItemEDT) {
+      for(i = 0; i < $rootScope.cartItens.length; i++) { 
+        if($rootScope.cartItens[i] == $rootScope.itemForEdit){
+          $rootScope.cartItens[i].QTY = qtyItemEDT;
+        }
+        $rootScope.totCar += Number($rootScope.cartItens[i].QTY)*Number($rootScope.cartItens[i].PRICE);
+      }
+
+      $scope.modal.hide();
+    };
+
+    // Cleanup the modal when we're done with it!
+    $scope.$on('$destroy', function() {
+      $scope.modal.remove();
+    });
+    // Execute action on hide modal
+    $scope.$on('modal.hidden', function() {
+      // Execute action
+    });
+
+
 })
 
-.controller('clienteCtrl', function($scope, customerFactory, customerAddressFactory) {
+.controller('clienteCtrl', function($scope, $rootScope, customerFactory, customerAddressFactory) {
+    $rootScope.customer = [];
+    $rootScope.addressCustomer = [];
     $scope.currentItem = null;
 
     $scope.searchCustomer = function(email) {
 
       customerFactory.select(email).then(function(result) {
-        $scope.customer = [];
+        $rootScope.customer = [];
         $scope.currentItem = result;
 
-        $scope.customer.push($scope.currentItem);
-        customerAddressFactory.select(result['ID']).then(function(result) {
-          console.log(result);
-          $scope.addressCustomer = [];
-          $scope.addressCustomer.push(result);
-        });
+        if( result != null ){
+          $rootScope.customer.push($scope.currentItem);
+          customerAddressFactory.select(result['ID']).then(function(result) {
+            console.log(result);
+            $rootScope.addressCustomer = [];
+            $rootScope.addressCustomer.push(result);
+          });
+        }
 
       });
+
     };
 
 })
