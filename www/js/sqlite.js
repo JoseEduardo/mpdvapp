@@ -16,6 +16,8 @@ sqlite.run(function($ionicPlatform, $cordovaSQLite) {
     $cordovaSQLite.execute(db, "DROP TABLE PRODUCT");
 */
 //    $cordovaSQLite.execute(db, "DROP TABLE CONFIGURATION");
+//  $cordovaSQLite.execute(db, "DROP TABLE LOGIN");
+
 
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS PRODUCT (ID integer primary key, PRODUCT_ID integer, NAME varchar(250), IMG_1 varchar(250), IMG_2 varchar(250), SKU varchar(30), PRICE real, STOCK real)");
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CONFIGURATION (ID integer primary key, WS_URL varchar(250), WS_LOGIN varchar(250), WS_PASS varchar(250), STOCK real, IMG_IMP varchar(5), STORE_ID integer)");
@@ -24,6 +26,8 @@ sqlite.run(function($ionicPlatform, $cordovaSQLite) {
 
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS SALESORDER (ID integer primary key, CUSTOMER_ID integer, CUSTOMER_ADDRESS_ID integer, SHIPP_METHOD varchar(250), PAYMENT_METHOD varchar(250), SYNC varchar(1) )");
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS SALESORDER_ITEM (ID integer primary key, ORDER_ID integer, ID_PROD integer, QTY float )");
+
+    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS LOGIN (ID integer primary key, USER varchar(250), PASS varchar(250) )");
   });
 });
 
@@ -288,6 +292,43 @@ sqlite.factory('salesOrderItemFactory', function($cordovaSQLite) {
     },
     deleteAll : function(){
       $cordovaSQLite.execute(db, "DELETE FROM SALESORDER");
+    },
+  }
+});
+
+sqlite.factory('loginFactory', function($cordovaSQLite) {
+  return {
+    insert : function(USER, PASS){
+      var query = "INSERT INTO LOGIN (USER, PASS, STREET, REGION) VALUES (?, ?);";
+      var values = [SER, PASS];
+
+      return $cordovaSQLite.execute(db, query, values).then(
+        function(res) {
+          return res.insertId;
+        },
+        function(err) {
+          console.log(err);
+        }
+      );
+    },
+    select : function(USER, PASS){
+      var query = "SELECT * FROM LOGIN WHERE USER = '"+USER+"' AND PASS = '"+PASS+"'"; 
+
+      return $cordovaSQLite.execute(db, query).then(
+        function(res) {
+          if (res.rows.length > 0) {
+            return res.rows.item(0);
+          } else {
+            return null;
+          }
+        },
+        function(err) {
+          console.log(err);
+        }
+      );
+    },
+    deleteAll : function(){
+      $cordovaSQLite.execute(db, "DELETE FROM LOGIN");
     },
   }
 });

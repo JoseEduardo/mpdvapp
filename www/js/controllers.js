@@ -139,9 +139,13 @@ angular.module('app.controllers', [])
                     CUSTOMER: resultCustomer,
                     PRODUCT: prodOrder
                 };
-console.log( JSON.stringify( params ) );
+
                 $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
                   console.log( res.data );
+                  var alertPopup = $ionicPopup.alert({
+                    title: 'Venda',
+                    template: 'Finalizada com sucesso.'
+                  });
                 });
               });
             });
@@ -193,9 +197,25 @@ console.log( JSON.stringify( params ) );
 
 })
 
-.controller('loginCtrl', function($scope, $rootScope) {
+.controller('loginCtrl', function($scope, $rootScope, $state, $ionicPopup, loginFactory) {
+  $rootScope.loginUser = "";
+  $rootScope.loginPassword = "";
+
   $rootScope.showLoginFunc = function() {
     $rootScope.showLogin = true;
+  }
+
+  $scope.doLogin = function(USER, PASS) {
+    loginFactory.select(USER, PASS).then(function(result) {
+      if(result){
+        $state.go('tabsController.magentoPDV');
+      }else{
+        var alertPopup = $ionicPopup.alert({
+          title: 'Falha no acesso',
+          template: 'Verifique seu login e senha.'
+        });
+      }
+    });
   }
   
 })

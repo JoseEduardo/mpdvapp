@@ -4,20 +4,21 @@
             <div ng-controller="APICtrl" ng-show="!showLogin">
                 Não contem uma configuração valida para integração.
             </div>
-
             <div ng-controller="APICtrl" ng-show="showLogin">
-                <ion-list id="login-list1" class=" ">
-                    <label class="item item-input " id="login-input1">
-                        <span class="input-label">Username</span>
-                        <input type="text" ng-model="conn.WS_URL" placeholder="">
-                    </label>
-                    <label class="item item-input " id="login-input2">
-                        <span class="input-label">Password</span>
-                        <input type="password" placeholder="">
-                    </label>
-                </ion-list>
-                <div class="spacer" style="height: 40px;"></div>
-                <button id="login-button8" class=" button button-stable  button-block ">Log in</button>
+                <div ng-controller="loginCtrl">
+                    <ion-list id="login-list1">
+                        <label class="item item-input " id="login-input1">
+                            <span class="input-label">Username</span>
+                            <input type="text" ng-model="loginUser" placeholder="">
+                        </label>
+                        <label class="item item-input " id="login-input2">
+                            <span class="input-label">Password</span>
+                            <input type="password" ng-model="loginPassword" placeholder="">
+                        </label>
+                    </ion-list>
+                    <div class="spacer" style="height: 40px;"></div>
+                    <button id="login-button8" ng-click="doLogin(loginUser, loginPassword)" class=" button button-stable  button-block ">Log in</button>
+                </div>
             </div>
         </form>
     </ion-content>
