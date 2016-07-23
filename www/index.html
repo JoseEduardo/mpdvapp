@@ -69,6 +69,9 @@
             </ion-header-bar>
             <ion-content padding="false" class="side-menu-left has-header">
                 <form id="menu-form8" class="list " data-componentid="form8">
+                    <ion-item>
+                        <ion-toggle toggle-class="toggle-positive" ng-model="conn.IMG_IMP" ng-checked="conn.IMG_IMP" id="menu-toggle1" data-componentid="toggle1">Importar Imagens</ion-toggle>
+                    </ion-item>
                     <ion-item class="range range-dark " id="menu-range2" data-componentid="range2">Estoque P.
                         <input type="range" ng-model="conn.STOCK" value="50" min="0" max="100">
                     </ion-item>
@@ -81,6 +84,9 @@
                     <label class="item item-input " id="menu-input7" data-componentid="input7">
                         <input type="text" ng-model="conn.WS_PASS" placeholder="Senha WS">
                     </label>
+                    <label class="item item-input " id="menu-input10" data-componentid="input10">
+                        <input type="text" ng-model="conn.STORE_ID" placeholder="Codigo da Loja">
+                    </label>                   
                     <button id="venda-button11" ng-click="saveConfiguration()" class=" button button-balanced  button-block ">SALVAR</button>
                 </form>
             </ion-content>

@@ -8,10 +8,18 @@ sqlite.run(function($ionicPlatform, $cordovaSQLite) {
     }else{
       db = window.openDatabase("magepdv.db", '1', 'magepdv', 1024 * 1024 * 100); // browser
     }
+/*
+    $cordovaSQLite.execute(db, "DROP TABLE SALESORDER");
+    $cordovaSQLite.execute(db, "DROP TABLE CUSTOMER");
+    $cordovaSQLite.execute(db, "DROP TABLE CUSTOMER_ADDR");
+    $cordovaSQLite.execute(db, "DROP TABLE SALESORDER_ITEM");
+    $cordovaSQLite.execute(db, "DROP TABLE PRODUCT");
+*/
+//    $cordovaSQLite.execute(db, "DROP TABLE CONFIGURATION");
 
-    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS PRODUCT (ID integer primary key, PRODUCT_ID integer, NAME varchar(250), SKU varchar(30), PRICE real, STOCK real)");
-    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CONFIGURATION (ID integer primary key, WS_URL varchar(250), WS_LOGIN varchar(250), WS_PASS varchar(250), STOCK real)");
-    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CUSTOMER (ID integer primary key, FIRSTNAME varchar(250), LASTNAME varchar(250), EMAIL varchar(250), TAXVAT varchar(250))");
+    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS PRODUCT (ID integer primary key, PRODUCT_ID integer, NAME varchar(250), IMG_1 varchar(250), IMG_2 varchar(250), SKU varchar(30), PRICE real, STOCK real)");
+    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CONFIGURATION (ID integer primary key, WS_URL varchar(250), WS_LOGIN varchar(250), WS_PASS varchar(250), STOCK real, IMG_IMP varchar(5), STORE_ID integer)");
+    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CUSTOMER (ID integer primary key, ID_CUSTOMER integer, FIRSTNAME varchar(250), LASTNAME varchar(250), EMAIL varchar(250), TAXVAT varchar(250))");
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CUSTOMER_ADDR (ID integer primary key, CUSTOMER_ID integer, CUSTOMER_ADDRESS_ID integer, STREET varchar(250), REGION varchar(250) )");
 
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS SALESORDER (ID integer primary key, CUSTOMER_ID integer, CUSTOMER_ADDRESS_ID integer, SHIPP_METHOD varchar(250), PAYMENT_METHOD varchar(250), SYNC varchar(1) )");
@@ -21,16 +29,18 @@ sqlite.run(function($ionicPlatform, $cordovaSQLite) {
 
 sqlite.factory('configurationFactory', function($cordovaSQLite) {
   return {
-    insert : function(WS_URL, WS_LOGIN, WS_PASS, STOCK){
-      var query = "INSERT INTO CONFIGURATION (WS_URL, WS_LOGIN, WS_PASS, STOCK) VALUES (?, ?, ?, ?);";
-      var values = [WS_URL, WS_LOGIN, WS_PASS, STOCK];
+    insert : function(WS_URL, WS_LOGIN, WS_PASS, STOCK, IMG_IMP, STORE_ID){
+      var query = "INSERT INTO CONFIGURATION (WS_URL, WS_LOGIN, WS_PASS, STOCK, IMG_IMP, STORE_ID) VALUES (?, ?, ?, ?, ?, ?);";
+      var values = [WS_URL, WS_LOGIN, WS_PASS, STOCK, IMG_IMP.toString(), STORE_ID];
+
+      console.log(values);
 
       $cordovaSQLite.execute(db, query, values).then(
         function(res) {
           console.log('INSERTED ID: '+res.insertId);
         },
         function(err) {
-          console.log('ERROR: '+err);
+          console.log(err);
         }
     );
     },
@@ -55,16 +65,16 @@ sqlite.factory('configurationFactory', function($cordovaSQLite) {
 
 sqlite.factory('productFactory', function($cordovaSQLite) {
   return {
-    insert : function(productID, name, sku, price, stock){
-	    var query = "INSERT INTO PRODUCT (PRODUCT_ID, NAME, SKU, PRICE, STOCK) VALUES (?, ?, ?, ?, ?);";
-	  	var values = [productID, name, sku, price, stock];
+    insert : function(productID, name, sku, img1, img2, price, stock){
+	    var query = "INSERT INTO PRODUCT (PRODUCT_ID, NAME, SKU, IMG_1, IMG_2, PRICE, STOCK) VALUES (?, ?, ?, ?, ?, ?, ?);";
+	  	var values = [productID, name, sku, img1, img2, price, stock];
 
-     	$cordovaSQLite.execute(db, query, values).then(
+     	return $cordovaSQLite.execute(db, query, values).then(
 		    function(res) {
-		      console.log('INSERTED ID: '+res.insertId);
+		      return res.insertId;
 		    },
 		    function(err) {
-		      console.log('ERROR: '+err);
+		      console.log(err);
 		    }
 	 	);
     },
@@ -103,17 +113,31 @@ sqlite.factory('productFactory', function($cordovaSQLite) {
 
 sqlite.factory('customerFactory', function($cordovaSQLite) {
   return {
-    insert : function(FIRSTNAME, LASTNAME, EMAIL, TAXVAT){
-      var query = "INSERT INTO CUSTOMER (FIRSTNAME, LASTNAME, EMAIL, TAXVAT) VALUES (?, ?, ?, ?);";
-      var values = [FIRSTNAME, LASTNAME, EMAIL, TAXVAT];
+    insert : function(ID_CUSTOMER, FIRSTNAME, LASTNAME, EMAIL, TAXVAT){
+      var query = "INSERT INTO CUSTOMER (ID_CUSTOMER, FIRSTNAME, LASTNAME, EMAIL, TAXVAT) VALUES (?, ?, ?, ?, ?);";
+      var values = [ID_CUSTOMER, FIRSTNAME, LASTNAME, EMAIL, TAXVAT];
 
       return $cordovaSQLite.execute(db, query, values).then(
         function(res) {
           return res.insertId;
         },
         function(err) {
-          console.log('ERROR: '+err);
+          console.log(err);
           return null;
+        }
+      );
+    },
+    selectById : function(searchData){
+      var query = "SELECT * FROM CUSTOMER WHERE ID = '"+searchData+"'"; 
+
+      return $cordovaSQLite.execute(db, query).then(
+        function(res) {
+          if (res.rows.length > 0) {
+            console.log(res.rows.item(0));
+            return res.rows.item(0);
+          } else {
+            return null;
+          }
         }
       );
     },
@@ -157,14 +181,14 @@ sqlite.factory('customerAddressFactory', function($cordovaSQLite) {
       var query = "INSERT INTO CUSTOMER_ADDR (CUSTOMER_ID, CUSTOMER_ADDRESS_ID, STREET, REGION) VALUES (?, ?, ?, ?);";
       var values = [CUSTOMER_ID, CUSTOMER_ADDRESS_ID, STREET, REGION];
 
-      $cordovaSQLite.execute(db, query, values).then(
+      return $cordovaSQLite.execute(db, query, values).then(
         function(res) {
           return res.insertId;
         },
         function(err) {
-          console.log('ERROR: '+err);
+          console.log(err);
         }
-    );
+      );
     },
     select : function(customerID){
       var query = "SELECT * FROM CUSTOMER_ADDR WHERE CUSTOMER_ID = "+customerID; 
@@ -207,7 +231,7 @@ sqlite.factory('salesOrderFactory', function($cordovaSQLite) {
       return $cordovaSQLite.execute(db, query).then(
         function(res) {
           if (res.rows.length > 0) {
-            return res.rows.item(0);
+            return res.rows;
           } else {
             return null;
           }
@@ -250,12 +274,12 @@ sqlite.factory('salesOrderItemFactory', function($cordovaSQLite) {
       );
     },
     select : function(searchData){
-      var query = "SELECT * FROM SALESORDER_ITEM"; 
+      var query = "SELECT * FROM SALESORDER_ITEM WHERE ORDER_ID = '"+searchData+"'"; 
 
       return $cordovaSQLite.execute(db, query).then(
         function(res) {
           if (res.rows.length > 0) {
-            return res.rows.item(0);
+            return res.rows;
           } else {
             return null;
           }
