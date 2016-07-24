@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config>
+  <modules>
+    <ZTSoftware_MagePDV>
+      <version>1.0.0</version>
+    </ZTSoftware_MagePDV>
+  </modules>
+  <global>
+    <helpers>
+      <magepdv>
+        <class>ZTSoftware_MagePDV_Helper</class>
+      </magepdv>
+    </helpers>
+	<models>
+	  <magepdv>
+		<class>ZTSoftware_MagePDV_Model</class>
+		<resourceModel>magepdv_mysql4</resourceModel>
+	  </magepdv>
+	</models>
+  </global>
+</config> 

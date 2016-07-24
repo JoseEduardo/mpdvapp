@@ -115,15 +115,17 @@ sqlite.factory('productFactory', function($cordovaSQLite) {
   }
 });
 
-sqlite.factory('customerFactory', function($cordovaSQLite) {
+sqlite.factory('customerFactory', function($cordovaSQLite, customerAddressFactory) {
   return {
-    insert : function(ID_CUSTOMER, FIRSTNAME, LASTNAME, EMAIL, TAXVAT){
+    insert : function(ID_CUSTOMER, FIRSTNAME, LASTNAME, EMAIL, TAXVAT, ADDRESS){
       var query = "INSERT INTO CUSTOMER (ID_CUSTOMER, FIRSTNAME, LASTNAME, EMAIL, TAXVAT) VALUES (?, ?, ?, ?, ?);";
       var values = [ID_CUSTOMER, FIRSTNAME, LASTNAME, EMAIL, TAXVAT];
 
       return $cordovaSQLite.execute(db, query, values).then(
         function(res) {
-          return res.insertId;
+          customerAddressFactory.insert(res.insertId, ADDRESS.customer_address_id, ADDRESS.street, ADDRESS.region).then(function(){
+            return true;
+          });
         },
         function(err) {
           console.log(err);

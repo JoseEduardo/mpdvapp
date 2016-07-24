@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<config>
+    <api>
+        <resources>
+            <magepdv_api translate="title" module="magepdv">
+                <title>Myapi</title>
+                <acl>magepdv/api</acl>
+                <model>magepdv/api</model>
+                <methods>                    
+						<productlist translate="title" module="magepdv">
+							<title>get All Products</title>
+							<acl>magepdv/productlist</acl>
+						</productlist>                    
+						<customerlist translate="title" module="magepdv">
+							<title>get All Customers</title>
+							<acl>magepdv/customerlist</acl>
+						</customerlist>
+                </methods>
+            </magepdv_api>
+        </resources>
+        <acl>
+            <resources>
+                <magepdv translate="title" module="magepdv">
+                    <title>MagePDV</title>
+                    <sort_order>2000</sort_order>                    
+					<productlist translate="title" module="magepdv">
+                        <title>get All Products</title>
+                    </productlist>                    
+					<customerlist translate="title" module="magepdv">
+                        <title>get All Customers</title>
+                    </customerlist>
+                </magepdv>
+            </resources>
+        </acl>
+    </api>
+</config>

@@ -70,15 +70,7 @@ angular.module('app.controllers', [])
           .success(function (data, status, headers, config) {
             productFactory.deleteAll();
             for (var i = 0; i <= data.length-1; i++) {
-              console.log(data[i]);
-              var img1 = data[i].image1;
-              var img2 = data[i].image2;
-              productFactory.insert(data[i].product_id, data[i].name, data[i].sku, data[i].image1, data[i].image2, data[i].price, data[i].stock).then(function(result) {
-                //if(result.IMG_IMP){
-                  $scope.getSaveImagesProduct(img1, result+"/1");
-                  $scope.getSaveImagesProduct(img2, result+"/2");
-                //}
-              });
+              $scope.saveProduct(data[i]);
             };
 
             $scope.showInterface = true;
@@ -92,6 +84,14 @@ angular.module('app.controllers', [])
       });
     }
 
+    $scope.saveProduct = function (data) {
+      var img1 = data.image1;
+      productFactory.insert(data.product_id, data.name, data.sku, data.image1, data.image2, data.price, data.stock).then(function(result) {
+        //if(result.IMG_IMP){
+          $scope.getSaveImagesProduct(img1, result+"/1");
+        //}
+      });
+    }
 
     $scope.getSaveImagesProduct = function (url, name) {
       ionic.Platform.ready(function(){
@@ -100,8 +100,8 @@ angular.module('app.controllers', [])
         }else{
            fileDeviceDir = cordova.file.externalRootDirectory;
         }
-
-        var targetPath = fileDeviceDir  + name + ".jpg";
+console.log(url);
+        var targetPath = fileDeviceDir + "magepdv/" + name + ".jpg";
         var trustHosts = true;
         var options = {};
 
@@ -154,18 +154,9 @@ angular.module('app.controllers', [])
       });
     } 
 
-    $scope.processOneCustomerAddress = function(id_customer, address) {
-      customerAddressFactory.insert(id_customer, address.customer_address_id, address.street, address.region).then(function(){
-        return true;
-      });
-    }
-
     $scope.processOneCustomer = function(data, address) {
-      customerFactory.insert(data.customer_id, data.firstname, data.lastname, data.email, data.taxvat).then(function(result){
-        for (var x = 0; x <= address.length-1; x++) {
-          $scope.processOneCustomerAddress(result, address[x]);          
-        }
-
+      $rootScope.addreeIns = address;
+      customerFactory.insert(data.customer_id, data.firstname, data.lastname, data.email, data.taxvat, address).then(function(result){
         return result;
       });
     }
@@ -206,6 +197,7 @@ angular.module('app.controllers', [])
   }
 
   $scope.doLogin = function(USER, PASS) {
+        $state.go('tabsController.magentoPDV');
     loginFactory.select(USER, PASS).then(function(result) {
       if(result){
         $state.go('tabsController.magentoPDV');
@@ -226,7 +218,6 @@ angular.module('app.controllers', [])
     $rootScope.cartItens = [];
     $scope.noStock = false;
     $scope.imageProd1 = null;
-    $scope.imageProd2 = null;
 
     $scope.searchBarCode = function(sku) {
       productFactory.select(sku).then(function(result) {
@@ -303,16 +294,13 @@ angular.module('app.controllers', [])
 
     $scope.getImageOfProduct = function(id_product) {
       $scope.imageProd1 = null;
-      $scope.imageProd2 = null;
       if($cordovaDevice.getPlatform() == 'iOS'){
          fileDeviceDir = cordova.file.dataDirectory;
       }else{
          fileDeviceDir = cordova.file.externalRootDirectory;
       }
 
-      $scope.imageProd1 = fileDeviceDir + id_product + "/1.jpg";
-      $scope.imageProd2 = fileDeviceDir + id_product + "/2.jpg";
-      console.log( $scope.imageProd1 );
+      $scope.imageProd1 = fileDeviceDir + "magepdv/" + id_product + "/1.jpg";
     };
 
     $ionicModal.fromTemplateUrl('editcart.html', {
