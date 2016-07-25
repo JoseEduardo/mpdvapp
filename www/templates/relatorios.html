@@ -1,0 +1,23 @@
+<ion-view title="Relatório" id="page8" class=" ">
+    <ion-content ng-controller="vendaCtrl" ng-init="loadAllOrders()" padding="true" class="has-header">
+    {{ ordersRel }}
+        <form id="venda-form4" class="list ">
+            <ion-list>
+                <ion-item-sliding ng-repeat="x in ordersRel">
+                    <ion-item class="item-icon-right">
+                    <div id="edtOrder" ng-click="showOrder(x)">
+                        [{{ x }}]
+                    </div>
+                    <i class="icon ion-printer" ng-click="printOrder(x)"></i>
+                    </ion-item>
+                </ion-item-sliding>
+            </ion-list>
+        </form>
+    </ion-content>
+</ion-view>
+
+<script id="editcart.html" type="text/ng-template">
+</script>
+
+<script id="methods.html" type="text/ng-template">
+</script>

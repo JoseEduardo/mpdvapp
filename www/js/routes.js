@@ -50,6 +50,16 @@ angular.module('app.routes', [])
     }
   })
 
+  .state('tabsController.relatorios', {
+    url: '/page8',
+    views: {
+      'tab5': {
+        templateUrl: 'templates/relatorios.html',
+        controller: 'vendaCtrl'
+      }
+    }
+  })
+
 $urlRouterProvider.otherwise('/page5')
 
   

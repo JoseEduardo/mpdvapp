@@ -231,16 +231,25 @@ sqlite.factory('salesOrderFactory', function($cordovaSQLite) {
         }
       );
     },
-    select : function(searchData){
-      var query = "SELECT * FROM SALESORDER"; 
+    select : function(){
+      var query = "SELECT * FROM SALESORDER;"; 
 
       return $cordovaSQLite.execute(db, query).then(
         function(res) {
           if (res.rows.length > 0) {
-            return res.rows;
+            var returArray = [];
+            for (var i = 0; i <= res.rows.length-1; i++) {
+              returArray.push( res.rows.item(i) );
+            };
+
+            return returArray;
           } else {
             return null;
           }
+        },
+        function(err) {
+          console.log(err);
+          return null;
         }
       );
     },
@@ -285,7 +294,12 @@ sqlite.factory('salesOrderItemFactory', function($cordovaSQLite) {
       return $cordovaSQLite.execute(db, query).then(
         function(res) {
           if (res.rows.length > 0) {
-            return res.rows;
+            var returArray = [];
+            for (var i = 0; i <= res.rows.length-1; i++) {
+              returArray.push( res.rows.item(i) );
+            };
+
+            return returArray;
           } else {
             return null;
           }

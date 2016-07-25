@@ -100,7 +100,7 @@ angular.module('app.controllers', [])
         }else{
            fileDeviceDir = cordova.file.externalRootDirectory;
         }
-console.log(url);
+
         var targetPath = fileDeviceDir + "magepdv/" + name + ".jpg";
         var trustHosts = true;
         var options = {};
@@ -119,6 +119,7 @@ console.log(url);
     $scope.doCreateOrderPHP = function() {
       configurationFactory.select().then(function(result) {
         salesOrderFactory.select().then(function(resultOrder) {
+                        console.log(resultOrder);
           for (var i = 0; i <= resultOrder.length-1; i++) {
             var OrderAt = resultOrder[i];
             customerFactory.selectById(resultOrder[i].CUSTOMER_ID).then(function(resultCustomer) {
@@ -142,10 +143,6 @@ console.log(url);
 
                 $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
                   console.log( res.data );
-                  var alertPopup = $ionicPopup.alert({
-                    title: 'Venda',
-                    template: 'Finalizada com sucesso.'
-                  });
                 });
               });
             });
@@ -212,7 +209,7 @@ console.log(url);
   
 })
 
-.controller('vendaCtrl', function($scope, $rootScope, $ionicModal, $cordovaDevice, productFactory, salesOrderFactory, salesOrderItemFactory) {
+.controller('vendaCtrl', function($scope, $rootScope, $ionicModal, $cordovaDevice, $ionicPopup, productFactory, salesOrderFactory, salesOrderItemFactory) {
     $scope.currentItem = null;
     $rootScope.totCar = 0;
     $rootScope.cartItens = [];
@@ -259,6 +256,7 @@ console.log(url);
 
       $scope.barcodeNumber = null;
       $scope.currentItem = null;
+      $scope.imageProd1 = null;
     };    
 
     $scope.removeFromCart = function(item) {
@@ -280,12 +278,26 @@ console.log(url);
       $rootScope.itemForEdit = item;
     }; 
 
+    $scope.loadAllOrders = function (){
+      ionic.Platform.ready(function(){
+        salesOrderFactory.select().then(function(resultOrder) {
+                console.log(resultOrder);
+          $scope.ordersRel = resultOrder;
+        });
+      });
+    }
+
     $scope.placeOrder = function() {
-      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'flatrate_flatrate', 'checkmo', 'N').then(function(result){
+      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', 'checkmo', 'N').then(function(result){
         for (var i = 0; i <= $rootScope.cartItens.length - 1; i++) {
           console.log( $rootScope.cartItens );
           salesOrderItemFactory.insert(result, $rootScope.cartItens[i].PRODUCT_ID, $rootScope.cartItens[i].QTY);
         };
+
+        var alertPopup = $ionicPopup.alert({
+          title: 'Venda',
+          template: 'Finalizada com sucesso.'
+        });
 
         $rootScope.totCar = 0;
         $rootScope.cartItens = []; 
