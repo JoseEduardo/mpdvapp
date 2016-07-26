@@ -68,12 +68,9 @@
       </ion-header-bar>
       <ion-content>
         <label class="item item-input " id="metLBPagamento">
-            <input type="text" ng-model="metPagamento" placeholder="Metodo de Pagamento"></input>
+            <input type="text" ng-model="PaymentMethod.value" placeholder="Metodo de Pagamento"></input>
         </label>
-        <label class="item item-input " id="metLBEnvio">
-            <input type="text" ng-model="metEnvio" placeholder="Metodo de Envio"></input>
-        </label>
-        <button ng-click="acceptModal(qtyItemEDT)" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">CONFIRMAR</button>
+        <button ng-click="setPayMethod(qtyItemEDT)" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">CONFIRMAR</button>
       </ion-content>
     </ion-modal-view>
 </script>

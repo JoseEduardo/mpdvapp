@@ -4,7 +4,7 @@ angular.module('app.controllers', [])
 
 })
 
-.controller('APICtrl', function($scope, $http, $rootScope, $cordovaFileTransfer, $cordovaDevice, productFactory, configurationFactory, customerFactory, customerAddressFactory, salesOrderFactory, salesOrderItemFactory) {
+.controller('APICtrl', function($scope, $http, $rootScope, $cordovaFileTransfer, $cordovaDevice, productFactory, configurationFactory, customerFactory, customerAddressFactory, salesOrderFactory, salesOrderItemFactory, loginFactory) {
   //http://magepdv-shaykie.rhcloud.com/products.php?WS_URL=http://magento.db1.com.br/magento_hom/index.php&WS_USER=anymarket&WS_PASSWORD=anymarket&PORC_STOCK=100
     $scope.showInterface = true; 
     $scope.conn = [];
@@ -15,6 +15,7 @@ angular.module('app.controllers', [])
       configurationFactory.insert($scope.conn.WS_URL, $scope.conn.WS_LOGIN, $scope.conn.WS_PASS, $scope.conn.STOCK, $scope.conn.IMG_IMP, $scope.conn.STORE_ID);
     
       $rootScope.showLoginFunc();
+      $rootScope.getAllLoginPHP();
     }
 
     $scope.loadConfiguration = function() {
@@ -55,6 +56,32 @@ angular.module('app.controllers', [])
         $scope.loadConfiguration();
         salesOrderFactory.count().then(function(result) {
           $scope.countOrders = result.TOTORDER;
+        });
+      });
+    }
+
+    $rootScope.getAllLoginPHP = function() {
+      configurationFactory.select().then(function(result) {
+        var params = 'WS_URL='+result.WS_URL+'&WS_USER='+result.WS_LOGIN+'&WS_PASSWORD='+result.WS_PASS;
+
+        $scope.result = "";
+        $scope.showInterface = false;
+
+        $http.get(URLPHPCTRL + '/f_vendedores.php?'+ params )
+          .success(function (data, status, headers, config) {
+            loginFactory.deleteAll();
+            for (var i = 0; i <= data.length-1; i++) {
+              loginFactory.insert(data[i].vend_id, data[i].vend_password, data[i].vend_name).then(function(result) {
+              });
+            };
+
+            $scope.showInterface = true;
+          })
+          .error(function (data, status, headers, config) {
+            console.log('data error');
+          })
+          .then(function (result) {
+            things = result.data;
         });
       });
     }
@@ -185,7 +212,7 @@ angular.module('app.controllers', [])
 
 })
 
-.controller('loginCtrl', function($scope, $rootScope, $state, $ionicPopup, loginFactory) {
+.controller('loginCtrl', function($scope, $rootScope, $state, $ionicPopup, loginFactory, md5) {
   $rootScope.loginUser = "";
   $rootScope.loginPassword = "";
 
@@ -194,7 +221,8 @@ angular.module('app.controllers', [])
   }
 
   $scope.doLogin = function(USER, PASS) {
-        $state.go('tabsController.magentoPDV');
+    PASS = md5.createHash(PASS);
+    console.log(PASS);
     loginFactory.select(USER, PASS).then(function(result) {
       if(result){
         $state.go('tabsController.magentoPDV');
@@ -280,7 +308,7 @@ angular.module('app.controllers', [])
 
     $scope.loadAllOrders = function (){
       ionic.Platform.ready(function(){
-        salesOrderFactory.select().then(function(resultOrder) {
+        salesOrderFactory.selectWithData().then(function(resultOrder) {
                 console.log(resultOrder);
           $scope.ordersRel = resultOrder;
         });
@@ -288,7 +316,8 @@ angular.module('app.controllers', [])
     }
 
     $scope.placeOrder = function() {
-      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', 'checkmo', 'N').then(function(result){
+      $scope.PaymentMethod.value = '30 ddl';
+      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $scope.PaymentMethod.value, 'N').then(function(result){
         for (var i = 0; i <= $rootScope.cartItens.length - 1; i++) {
           console.log( $rootScope.cartItens );
           salesOrderItemFactory.insert(result, $rootScope.cartItens[i].PRODUCT_ID, $rootScope.cartItens[i].QTY);

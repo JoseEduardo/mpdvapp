@@ -24,10 +24,10 @@ sqlite.run(function($ionicPlatform, $cordovaSQLite) {
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CUSTOMER (ID integer primary key, ID_CUSTOMER integer, FIRSTNAME varchar(250), LASTNAME varchar(250), EMAIL varchar(250), TAXVAT varchar(250))");
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CUSTOMER_ADDR (ID integer primary key, CUSTOMER_ID integer, CUSTOMER_ADDRESS_ID integer, STREET varchar(250), REGION varchar(250) )");
 
-    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS SALESORDER (ID integer primary key, CUSTOMER_ID integer, CUSTOMER_ADDRESS_ID integer, SHIPP_METHOD varchar(250), PAYMENT_METHOD varchar(250), SYNC varchar(1) )");
+    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS SALESORDER (ID integer primary key, CUSTOMER_ID integer, CUSTOMER_ADDRESS_ID integer, SHIPP_METHOD varchar(250), PAYMENT_METHOD varchar(250), SYNC varchar(1), DTA_CREATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS SALESORDER_ITEM (ID integer primary key, ORDER_ID integer, ID_PROD integer, QTY float )");
 
-    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS LOGIN (ID integer primary key, USER varchar(250), PASS varchar(250) )");
+    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS LOGIN (ID integer primary key, USER varchar(250), PASS varchar(250), NAME varchar(250) )");
   });
 });
 
@@ -253,6 +253,28 @@ sqlite.factory('salesOrderFactory', function($cordovaSQLite) {
         }
       );
     },
+    selectWithData : function(){
+      var query = "SELECT SSD.*, CUS.FIRSTNAME, CUS.EMAIL FROM SALESORDER SSD INNER JOIN CUSTOMER CUS WHERE CUS.ID_CUSTOMER = SSD.CUSTOMER_ID;"; 
+
+      return $cordovaSQLite.execute(db, query).then(
+        function(res) {
+          if (res.rows.length > 0) {
+            var returArray = [];
+            for (var i = 0; i <= res.rows.length-1; i++) {
+              returArray.push( res.rows.item(i) );
+            };
+
+            return returArray;
+          } else {
+            return null;
+          }
+        },
+        function(err) {
+          console.log(err);
+          return null;
+        }
+      );
+    },
     count : function(sku){
       var query = "SELECT COUNT(*) AS TOTORDER FROM SALESORDER";
 
@@ -314,9 +336,9 @@ sqlite.factory('salesOrderItemFactory', function($cordovaSQLite) {
 
 sqlite.factory('loginFactory', function($cordovaSQLite) {
   return {
-    insert : function(USER, PASS){
-      var query = "INSERT INTO LOGIN (USER, PASS, STREET, REGION) VALUES (?, ?);";
-      var values = [SER, PASS];
+    insert : function(USER, PASS, NAME){
+      var query = "INSERT INTO LOGIN (USER, PASS, NAME) VALUES (?, ?, ?);";
+      var values = [USER, PASS, NAME];
 
       return $cordovaSQLite.execute(db, query, values).then(
         function(res) {
