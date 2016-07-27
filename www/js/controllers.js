@@ -4,18 +4,20 @@ angular.module('app.controllers', [])
 
 })
 
-.controller('APICtrl', function($scope, $http, $rootScope, $cordovaFileTransfer, $cordovaDevice, productFactory, configurationFactory, customerFactory, customerAddressFactory, salesOrderFactory, salesOrderItemFactory, loginFactory) {
+.controller('APICtrl', function($scope, $http, $rootScope, $cordovaFileTransfer, $cordovaDevice, productFactory, configurationFactory, customerFactory, customerAddressFactory, salesOrderFactory, salesOrderItemFactory, loginFactory, metPagFactory) {
   //http://magepdv-shaykie.rhcloud.com/products.php?WS_URL=http://magento.db1.com.br/magento_hom/index.php&WS_USER=anymarket&WS_PASSWORD=anymarket&PORC_STOCK=100
     $scope.showInterface = true; 
     $scope.conn = [];
     $scope.countProd = 0;
     var URLPHPCTRL = 'http://magepdv-shaykie.rhcloud.com';
+
     $scope.saveConfiguration = function() {
       configurationFactory.deleteAll();
       configurationFactory.insert($scope.conn.WS_URL, $scope.conn.WS_LOGIN, $scope.conn.WS_PASS, $scope.conn.STOCK, $scope.conn.IMG_IMP, $scope.conn.STORE_ID);
     
       $rootScope.showLoginFunc();
       $rootScope.getAllLoginPHP();
+      $rootScope.getAllMetPagPHP();
     }
 
     $scope.loadConfiguration = function() {
@@ -86,6 +88,28 @@ angular.module('app.controllers', [])
       });
     }
 
+    $rootScope.getAllMetPagPHP = function() {
+      configurationFactory.select().then(function(result) {
+        var params = 'WS_URL='+result.WS_URL+'&WS_USER='+result.WS_LOGIN+'&WS_PASSWORD='+result.WS_PASS;
+
+        $http.get(URLPHPCTRL + '/f_met_pag.php?'+ params )
+          .success(function (data, status, headers, config) {
+            metPagFactory.deleteAll();
+            console.log('aaaa');
+            for (var i = 0; i <= data.length-1; i++) {
+              metPagFactory.insert(data[i].mtp_id, data[i].mtp_desc).then(function(result) {
+              });
+            };
+          })
+          .error(function (data, status, headers, config) {
+            console.log('data error');
+          })
+          .then(function (result) {
+            things = result.data;
+        });
+      });
+    }
+
     $scope.getAllProductsPHP = function() {
       configurationFactory.select().then(function(result) {
         var params = 'WS_URL='+result.WS_URL+'&WS_USER='+result.WS_LOGIN+'&WS_PASSWORD='+result.WS_PASS+'&PORC_STOCK='+result.STOCK;
@@ -145,7 +169,7 @@ angular.module('app.controllers', [])
 
     $scope.doCreateOrderPHP = function() {
       configurationFactory.select().then(function(result) {
-        salesOrderFactory.select().then(function(resultOrder) {
+        salesOrderFactory.selectOnlyUnprocessed().then(function(resultOrder) {
                         console.log(resultOrder);
           for (var i = 0; i <= resultOrder.length-1; i++) {
             var OrderAt = resultOrder[i];
@@ -169,6 +193,7 @@ angular.module('app.controllers', [])
                 };
 
                 $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
+                  salesOrderFactory.checkOrder(OrderAt.ID);
                   console.log( res.data );
                 });
               });
@@ -237,7 +262,7 @@ angular.module('app.controllers', [])
   
 })
 
-.controller('vendaCtrl', function($scope, $rootScope, $ionicModal, $cordovaDevice, $ionicPopup, productFactory, salesOrderFactory, salesOrderItemFactory) {
+.controller('vendaCtrl', function($scope, $rootScope, $ionicModal, $cordovaDevice, $ionicPopup, productFactory, salesOrderFactory, salesOrderItemFactory, metPagFactory) {
     $scope.currentItem = null;
     $rootScope.totCar = 0;
     $rootScope.cartItens = [];
@@ -315,9 +340,15 @@ angular.module('app.controllers', [])
       });
     }
 
+    $scope.showPayMenu = function() {
+      metPagFactory.select().then(function(result){
+        $scope.payments = result;
+        $scope.modalMethods.show();
+      });
+    }
+
     $scope.placeOrder = function() {
-      $scope.PaymentMethod.value = '30 ddl';
-      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $scope.PaymentMethod.value, 'N').then(function(result){
+      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.PaymentMethod, 'N').then(function(result){
         for (var i = 0; i <= $rootScope.cartItens.length - 1; i++) {
           console.log( $rootScope.cartItens );
           salesOrderItemFactory.insert(result, $rootScope.cartItens[i].PRODUCT_ID, $rootScope.cartItens[i].QTY);
@@ -373,12 +404,10 @@ angular.module('app.controllers', [])
       $scope.modalMethods = modal;
     });
 
-    $scope.closeModalMethods = function() {
+    $scope.setPayMethod = function(metd) {
+      $rootScope.PaymentMethod = metd;
       $scope.modalMethods.hide();
-    };
-
-    $scope.acceptModalMethods = function() {
-      $scope.modalMethods.hide();
+      $scope.placeOrder();
     };
 
 })
@@ -389,7 +418,6 @@ angular.module('app.controllers', [])
     $scope.currentItem = null;
 
     $scope.searchCustomer = function(email) {
-
       customerFactory.select(email).then(function(result) {
         $rootScope.customer = [];
         $scope.currentItem = result;

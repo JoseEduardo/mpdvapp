@@ -27,6 +27,9 @@ sqlite.run(function($ionicPlatform, $cordovaSQLite) {
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS SALESORDER (ID integer primary key, CUSTOMER_ID integer, CUSTOMER_ADDRESS_ID integer, SHIPP_METHOD varchar(250), PAYMENT_METHOD varchar(250), SYNC varchar(1), DTA_CREATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS SALESORDER_ITEM (ID integer primary key, ORDER_ID integer, ID_PROD integer, QTY float )");
 
+    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS MET_PAG (ID integer primary key, MTP_ID integer, MTP_DESC varchar(250) )");
+
+
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS LOGIN (ID integer primary key, USER varchar(250), PASS varchar(250), NAME varchar(250) )");
   });
 });
@@ -253,6 +256,28 @@ sqlite.factory('salesOrderFactory', function($cordovaSQLite) {
         }
       );
     },
+    selectOnlyUnprocessed : function(){
+      var query = "SELECT * FROM SALESORDER WHERE SYNC = 'N';"; 
+
+      return $cordovaSQLite.execute(db, query).then(
+        function(res) {
+          if (res.rows.length > 0) {
+            var returArray = [];
+            for (var i = 0; i <= res.rows.length-1; i++) {
+              returArray.push( res.rows.item(i) );
+            };
+
+            return returArray;
+          } else {
+            return null;
+          }
+        },
+        function(err) {
+          console.log(err);
+          return null;
+        }
+      );
+    },
     selectWithData : function(){
       var query = "SELECT SSD.*, CUS.FIRSTNAME, CUS.EMAIL FROM SALESORDER SSD INNER JOIN CUSTOMER CUS WHERE CUS.ID_CUSTOMER = SSD.CUSTOMER_ID;"; 
 
@@ -275,6 +300,9 @@ sqlite.factory('salesOrderFactory', function($cordovaSQLite) {
         }
       );
     },
+    checkOrder : function(id){
+      $cordovaSQLite.execute(db, "UPDATE SALESORDER SET SYNC = 'S' WHERE ID = '"+id+"'");
+    },   
     count : function(sku){
       var query = "SELECT COUNT(*) AS TOTORDER FROM SALESORDER";
 
@@ -367,6 +395,48 @@ sqlite.factory('loginFactory', function($cordovaSQLite) {
     },
     deleteAll : function(){
       $cordovaSQLite.execute(db, "DELETE FROM LOGIN");
+    },
+  }
+});
+
+sqlite.factory('metPagFactory', function($cordovaSQLite) {
+  return {
+    insert : function(MTP_ID, MTP_DESC){
+      var query = "INSERT INTO MET_PAG (MTP_ID, MTP_DESC) VALUES (?, ?);";
+      var values = [MTP_ID, MTP_DESC];
+
+      return $cordovaSQLite.execute(db, query, values).then(
+        function(res) {
+          return res.insertId;
+        },
+        function(err) {
+          console.log(err);
+        }
+      );
+    },
+    select : function(){
+      var query = "SELECT * FROM MET_PAG"; 
+
+      return $cordovaSQLite.execute(db, query).then(
+        function(res) {
+          if (res.rows.length > 0) {
+            var returArray = [];
+            for (var i = 0; i <= res.rows.length-1; i++) {
+              returArray.push( res.rows.item(i) );
+            };
+
+            return returArray;
+          } else {
+            return null;
+          }
+        },
+        function(err) {
+          console.log(err);
+        }
+      );
+    },
+    deleteAll : function(){
+      $cordovaSQLite.execute(db, "DELETE FROM MET_PAG");
     },
   }
 });
