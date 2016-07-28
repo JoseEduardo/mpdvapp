@@ -1,0 +1,29 @@
+private String printAppIds[] = {
+    "kr.co.iconlab.BasicPrintingProfile",       // Bluetooth Smart Printing
+    "com.blueslib.android.app",                 // Bluetooth SPP Printer API
+    "com.brother.mfc.brprint",                  // Brother iPrint&Scan
+    "com.brother.ptouch.sdk",                   // Brother Print Library
+    "jp.co.canon.bsd.android.aepp.activity",    // Canon Easy-PhotoPrint
+    "com.pauloslf.cloudprint",                  // Cloud Print
+    "com.dlnapr1.printer",                      // CMC DLNA Print Client
+    "com.dell.mobileprint",                     // Dell Mobile Print
+    "com.printjinni.app.print",                 // PrintJinni
+    "epson.print",                              // Epson iPrint
+    "jp.co.fujixerox.prt.PrintUtil.PCL",        // Fuji Xerox Print Utility
+    "jp.co.fujixerox.prt.PrintUtil.Karin",      // Fuji Xeros Print&Scan (S)
+    "com.hp.android.print",                     // HP ePrint
+    "com.blackspruce.lpd",                      // Let's Print Droid
+    "com.threebirds.notesprint",                // NotesPrint print your notes
+    "com.xerox.mobileprint",                    // Print Portal (Xerox)
+    "com.zebra.kdu",                            // Print Station (Zebra)
+    "net.jsecurity.printbot",                   // PrintBot
+    "com.dynamixsoftware.printhand",            // PrintHand Mobile Print
+    "com.dynamixsoftware.printhand.premium",    // PrintHand Mobile Print Premium
+    "com.sec.print.mobileprint",                // Samsung Mobile Print
+    "com.rcreations.send2printer",              // Send 2 Printer
+    "com.ivc.starprint",                        // StarPrint
+    "com.threebirds.easyviewer",                // WiFi Print
+    "com.woosim.android.print",                 // Woosim BT printer
+    "com.woosim.bt.app",                        // WoosimPrinter
+    "com.zebra.android.zebrautilities",         // Zebra Utilities
+};

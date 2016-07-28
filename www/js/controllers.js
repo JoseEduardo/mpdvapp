@@ -4,20 +4,63 @@ angular.module('app.controllers', [])
 
 })
 
+.controller('printCtrl', function($scope, $cordovaPrinter) {
+    $scope.print = function() {
+      ionic.Platform.ready(function(){
+        cordova.plugins.printer.isAvailable(
+            function (isAvailable, installedAppIds) {
+              console.log(isAvailable);
+              console.log(installedAppIds);
+                if (isAvailable) {
+                  console.log('ccc');
+                    cordova.plugins.printer.print('<h1>TEST</h1>', 'www.google.com.br', function () {
+                        alert('Impressão concluida');
+                    });
+                }else{
+                  alert('Impressora não disponivel');
+                }
+            }
+        );
+      });
+    }
+
+})
+
 .controller('APICtrl', function($scope, $http, $rootScope, $cordovaFileTransfer, $cordovaDevice, productFactory, configurationFactory, customerFactory, customerAddressFactory, salesOrderFactory, salesOrderItemFactory, loginFactory, metPagFactory) {
   //http://magepdv-shaykie.rhcloud.com/products.php?WS_URL=http://magento.db1.com.br/magento_hom/index.php&WS_USER=anymarket&WS_PASSWORD=anymarket&PORC_STOCK=100
     $scope.showInterface = true; 
-    $scope.conn = [];
+    $rootScope.conn = [];
     $scope.countProd = 0;
     var URLPHPCTRL = 'http://magepdv-shaykie.rhcloud.com';
 
-    $scope.saveConfiguration = function() {
+    $scope.getConfigs = function(emp) {
+      $http.get(URLPHPCTRL + '/configurations.php?EMP='+emp)
+        .success(function (data, status, headers, config) {
+          $rootScope.conn.WS_URL = data.WS_URL;
+          $rootScope.conn.WS_LOGIN = data.WS_LOGIN;
+          $rootScope.conn.WS_PASS = data.WS_PASS;
+          $rootScope.conn.STOCK = data.STOCK;
+          $rootScope.conn.IMG_IMP = data.IMG_IMP;
+          $rootScope.conn.STORE_ID = data.STORE_ID;
+
+          $rootScope.saveConfiguration();
+        })
+        .error(function (data, status, headers, config) {
+          console.log('data error');
+        })
+        .then(function (result) {
+          things = result.data;
+      });
+
+    }
+
+    $rootScope.saveConfiguration = function() {
       configurationFactory.deleteAll();
-      configurationFactory.insert($scope.conn.WS_URL, $scope.conn.WS_LOGIN, $scope.conn.WS_PASS, $scope.conn.STOCK, $scope.conn.IMG_IMP, $scope.conn.STORE_ID);
+      configurationFactory.insert($rootScope.conn.WS_URL, $rootScope.conn.WS_LOGIN, $rootScope.conn.WS_PASS, $rootScope.conn.STOCK, $rootScope.conn.IMG_IMP, $rootScope.conn.STORE_ID);
     
-      $rootScope.showLoginFunc();
       $rootScope.getAllLoginPHP();
       $rootScope.getAllMetPagPHP();
+      $rootScope.showLoginFunc();
     }
 
     $scope.loadConfiguration = function() {
@@ -29,16 +72,19 @@ angular.module('app.controllers', [])
         $scope.conn.IMG_IMP = "";
         $scope.conn.STORE_ID = "";
         $rootScope.showLogin = false;
-        configurationFactory.select().then(function(result) {
-          $scope.conn.WS_URL = result.WS_URL;
-          $scope.conn.WS_LOGIN = result.WS_LOGIN;
-          $scope.conn.WS_PASS = result.WS_PASS;
-          $scope.conn.STOCK = result.STOCK;
-          $scope.conn.IMG_IMP = Boolean(result.IMG_IMP);
-          $scope.conn.STORE_ID = result.STORE_ID;
 
-          if(result.WS_URL){
-            $rootScope.showLogin = true;
+        configurationFactory.select().then(function(result) {
+          if( result != null ){
+            $scope.conn.WS_URL = result.WS_URL;
+            $scope.conn.WS_LOGIN = result.WS_LOGIN;
+            $scope.conn.WS_PASS = result.WS_PASS;
+            $scope.conn.STOCK = result.STOCK;
+            $scope.conn.IMG_IMP = Boolean(result.IMG_IMP);
+            $scope.conn.STORE_ID = result.STORE_ID;
+
+            if(result.WS_URL){
+              $rootScope.showLogin = true;
+            }
           }
         });
       });
@@ -95,7 +141,6 @@ angular.module('app.controllers', [])
         $http.get(URLPHPCTRL + '/f_met_pag.php?'+ params )
           .success(function (data, status, headers, config) {
             metPagFactory.deleteAll();
-            console.log('aaaa');
             for (var i = 0; i <= data.length-1; i++) {
               metPagFactory.insert(data[i].mtp_id, data[i].mtp_desc).then(function(result) {
               });
@@ -184,6 +229,7 @@ angular.module('app.controllers', [])
                     WS_URL: result.WS_URL, 
                     WS_USER: result.WS_LOGIN,
                     WS_PASSWORD: result.WS_PASS,
+                    FEIRA: '1',
                     STORE_ID: result.STORE_ID,
                     PAYMENT: OrderAt.PAYMENT_METHOD,
                     SHIPPING: OrderAt.SHIPP_METHOD,
@@ -247,7 +293,6 @@ angular.module('app.controllers', [])
 
   $scope.doLogin = function(USER, PASS) {
     PASS = md5.createHash(PASS);
-    console.log(PASS);
     loginFactory.select(USER, PASS).then(function(result) {
       if(result){
         $state.go('tabsController.magentoPDV');
@@ -348,6 +393,7 @@ angular.module('app.controllers', [])
     }
 
     $scope.placeOrder = function() {
+      console.log('venda inserida');
       salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.PaymentMethod, 'N').then(function(result){
         for (var i = 0; i <= $rootScope.cartItens.length - 1; i++) {
           console.log( $rootScope.cartItens );
@@ -421,7 +467,7 @@ angular.module('app.controllers', [])
       customerFactory.select(email).then(function(result) {
         $rootScope.customer = [];
         $scope.currentItem = result;
-
+        console.log(result);
         if( result != null ){
           $rootScope.customer.push($scope.currentItem);
           customerAddressFactory.select(result['ID']).then(function(result) {

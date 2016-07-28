@@ -3,6 +3,12 @@
         <form id="login-form2" class="list" ng-controller="APICtrl" ng-init="loadConfiguration()">
             <div ng-controller="APICtrl" ng-show="!showLogin">
                 Não contem uma configuração valida para integração.
+                <label class="item item-input " id="login-input1">
+                    <span class="input-label">Empresa</span>
+                    <input type="text" ng-model="empUser" placeholder="">
+                </label>
+                <button id="login-button8" ng-click="getConfigs(empUser)" class=" button button-stable  button-block ">Configurar</button>
+                
             </div>
             <div ng-controller="APICtrl" ng-show="showLogin">
                 <div ng-controller="loginCtrl">

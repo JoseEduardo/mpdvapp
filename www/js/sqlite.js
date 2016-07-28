@@ -38,18 +38,19 @@ sqlite.factory('configurationFactory', function($cordovaSQLite) {
   return {
     insert : function(WS_URL, WS_LOGIN, WS_PASS, STOCK, IMG_IMP, STORE_ID){
       var query = "INSERT INTO CONFIGURATION (WS_URL, WS_LOGIN, WS_PASS, STOCK, IMG_IMP, STORE_ID) VALUES (?, ?, ?, ?, ?, ?);";
-      var values = [WS_URL, WS_LOGIN, WS_PASS, STOCK, IMG_IMP.toString(), STORE_ID];
+      
+      if( WS_URL != undefined || WS_URL == '' ){
+        var values = [WS_URL, WS_LOGIN, WS_PASS, STOCK, IMG_IMP.toString(), STORE_ID];
 
-      console.log(values);
-
-      $cordovaSQLite.execute(db, query, values).then(
-        function(res) {
-          console.log('INSERTED ID: '+res.insertId);
-        },
-        function(err) {
-          console.log(err);
-        }
-    );
+        $cordovaSQLite.execute(db, query, values).then(
+          function(res) {
+            console.log('INSERTED ID: '+res.insertId);
+          },
+          function(err) {
+            console.log(err);
+          }
+        );
+      }
     },
     select : function(){
       var query = "SELECT * FROM CONFIGURATION"; 
@@ -65,6 +66,7 @@ sqlite.factory('configurationFactory', function($cordovaSQLite) {
     );
     },
     deleteAll : function(){
+      console.log('deletou');
       $cordovaSQLite.execute(db, "DELETE FROM CONFIGURATION");
     },
   }
@@ -78,6 +80,7 @@ sqlite.factory('productFactory', function($cordovaSQLite) {
 
      	return $cordovaSQLite.execute(db, query, values).then(
 		    function(res) {
+          console.log('Prod: '+res.insertId);
 		      return res.insertId;
 		    },
 		    function(err) {
@@ -127,6 +130,7 @@ sqlite.factory('customerFactory', function($cordovaSQLite, customerAddressFactor
       return $cordovaSQLite.execute(db, query, values).then(
         function(res) {
           customerAddressFactory.insert(res.insertId, ADDRESS.customer_address_id, ADDRESS.street, ADDRESS.region).then(function(){
+            console.log('Client');
             return true;
           });
         },
@@ -189,9 +193,10 @@ sqlite.factory('customerAddressFactory', function($cordovaSQLite) {
     insert : function(CUSTOMER_ID, CUSTOMER_ADDRESS_ID, STREET, REGION){
       var query = "INSERT INTO CUSTOMER_ADDR (CUSTOMER_ID, CUSTOMER_ADDRESS_ID, STREET, REGION) VALUES (?, ?, ?, ?);";
       var values = [CUSTOMER_ID, CUSTOMER_ADDRESS_ID, STREET, REGION];
-
+console.log('Client Insert'+values);
       return $cordovaSQLite.execute(db, query, values).then(
         function(res) {
+          console.log('Client ADDR '+res.insertId);
           return res.insertId;
         },
         function(err) {

@@ -2,14 +2,24 @@
     <ion-content ng-controller="vendaCtrl" ng-init="loadAllOrders()" padding="true" class="has-header">
         <form id="venda-form4" class="list ">
             <ion-list>
-                <ion-item-sliding ng-repeat="x in ordersRel">
-                    <ion-item class="item-icon-right">
-                    <div id="edtOrder" ng-click="showOrder(x)">
-                        [{{ x.FIRSTNAME }}] {{x.DTA_CREATE}}
-                    </div>
-                    <i class="icon ion-printer" ng-click="printOrder(x)"></i>
+                <ion-item class="item-remove-animate" ng-repeat="x in ordersRel">
+                    <ion-item class="item-icon-right" ng-controller="printCtrl">
+
+                        <div class="input-wrapper">
+                            <ion-label>
+                                <h2>{{ x.FIRSTNAME }}</h2>
+                                <p>{{x.DTA_CREATE}}</p>
+                            </ion-label>
+                        </div>
+                        <ion-option-button class="button-assertive" ng-click="print(x)">
+                            Imprimir
+                        </ion-option-button>
+                        <ion-option-button class="button-positive" ng-click="sendOrder(x)">
+                            Reenviar
+                        </ion-option-button>
+                    
                     </ion-item>
-                </ion-item-sliding>
+                </ion-item>
             </ion-list>
         </form>
     </ion-content>
