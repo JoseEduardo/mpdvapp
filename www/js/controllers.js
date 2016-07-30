@@ -4,33 +4,64 @@ angular.module('app.controllers', [])
 
 })
 
-.controller('printCtrl', function($scope, $cordovaPrinter) {
-    $scope.print = function() {
-      ionic.Platform.ready(function(){
-        cordova.plugins.printer.isAvailable(
-            function (isAvailable, installedAppIds) {
-              console.log(isAvailable);
-              console.log(installedAppIds);
-                if (isAvailable) {
-                  console.log('ccc');
-                    cordova.plugins.printer.print('<h1>TEST</h1>', 'www.google.com.br', function () {
-                        alert('Impressão concluida');
-                    });
-                }else{
-                  alert('Impressora não disponivel');
+.controller('printCtrl', function($scope, $rootScope, $cordovaPrinter, salesOrderFactory, customerFactory, salesOrderItemFactory ) {
+    $rootScope.print = function() {
+      $rootScope.orderPrint = [];
+
+      document.addEventListener('deviceready', function () {
+        salesOrderFactory.selectOnlyUnprocessed().then(function(resultOrder) {
+          for (var i = 0; i <= resultOrder.length-1; i++) {
+            var OrderAt = resultOrder[i];
+            customerFactory.selectById(resultOrder[i].CUSTOMER_ID).then(function(resultCustomer) {
+              salesOrderItemFactory.select(OrderAt.ID).then(function(resultOrderItem) {
+                var prodOrder = [];
+                for (var x = 0; x <= resultOrderItem.length-1; x++) {
+                  prodOrder.push( resultOrderItem[x] );  
                 }
-            }
-        );
-      });
+
+                $rootScope.orderPrint.customer = resultCustomer.FIRSTNAME;
+                $rootScope.orderPrint.tot = OrderAt.TOT_VLR;
+                $rootScope.orderPrint.payMet = OrderAt.PAYMENT_METHOD;
+                $rootScope.orderPrint.items = prodOrder;
+
+                cordova.plugins.printer.isAvailable(
+                  function (isAvailable, installedAppIds) {
+                      if (isAvailable) {
+                        var page = document.getElementById('repForPrint');
+                        cordova.plugins.printer.print(page, 'Document.html', function () {
+
+                        });
+                      }else{
+                        alert('Impressora não disponivel');
+                      }
+                  }
+                );
+
+              });
+            });
+          };
+        });
+      
+      }, false);
+
     }
 
 })
 
 .controller('APICtrl', function($scope, $http, $rootScope, $cordovaFileTransfer, $cordovaDevice, productFactory, configurationFactory, customerFactory, customerAddressFactory, salesOrderFactory, salesOrderItemFactory, loginFactory, metPagFactory) {
   //http://magepdv-shaykie.rhcloud.com/products.php?WS_URL=http://magento.db1.com.br/magento_hom/index.php&WS_USER=anymarket&WS_PASSWORD=anymarket&PORC_STOCK=100
-    $scope.showInterface = true; 
+    $rootScope.showInterface = true; 
     $rootScope.conn = [];
     $scope.countProd = 0;
+
+    $rootScope.impCustomerTot = 0;
+    $rootScope.impCustomerAtual = 0;
+    $rootScope.impCustomerStatus = "";
+
+    $rootScope.impProdTot = 0;
+    $rootScope.impProdAtual = 0;
+    $rootScope.impProdStatus = "";
+
     var URLPHPCTRL = 'http://magepdv-shaykie.rhcloud.com';
 
     $scope.getConfigs = function(emp) {
@@ -42,7 +73,7 @@ angular.module('app.controllers', [])
           $rootScope.conn.STOCK = data.STOCK;
           $rootScope.conn.IMG_IMP = data.IMG_IMP;
           $rootScope.conn.STORE_ID = data.STORE_ID;
-
+console.log('getConfig');
           $rootScope.saveConfiguration();
         })
         .error(function (data, status, headers, config) {
@@ -79,7 +110,7 @@ angular.module('app.controllers', [])
             $scope.conn.WS_LOGIN = result.WS_LOGIN;
             $scope.conn.WS_PASS = result.WS_PASS;
             $scope.conn.STOCK = result.STOCK;
-            $scope.conn.IMG_IMP = Boolean(result.IMG_IMP);
+            $scope.conn.IMG_IMP = result.IMG_IMP;
             $scope.conn.STORE_ID = result.STORE_ID;
 
             if(result.WS_URL){
@@ -113,7 +144,7 @@ angular.module('app.controllers', [])
         var params = 'WS_URL='+result.WS_URL+'&WS_USER='+result.WS_LOGIN+'&WS_PASSWORD='+result.WS_PASS;
 
         $scope.result = "";
-        $scope.showInterface = false;
+        $rootScope.showInterface = false;
 
         $http.get(URLPHPCTRL + '/f_vendedores.php?'+ params )
           .success(function (data, status, headers, config) {
@@ -123,7 +154,7 @@ angular.module('app.controllers', [])
               });
             };
 
-            $scope.showInterface = true;
+            $rootScope.showInterface = true;
           })
           .error(function (data, status, headers, config) {
             console.log('data error');
@@ -160,16 +191,20 @@ angular.module('app.controllers', [])
         var params = 'WS_URL='+result.WS_URL+'&WS_USER='+result.WS_LOGIN+'&WS_PASSWORD='+result.WS_PASS+'&PORC_STOCK='+result.STOCK;
 
         $scope.result = "";
-        $scope.showInterface = false;
+        $rootScope.showInterface = false;
 
         $http.get(URLPHPCTRL + '/products.php?'+ params )
           .success(function (data, status, headers, config) {
             productFactory.deleteAll();
+
+            $rootScope.impProdTot = data.length;
+            $rootScope.impProdAtual = 0;
+            $rootScope.impProdStatus = "Importando Produtos aguarde.";
             for (var i = 0; i <= data.length-1; i++) {
               $scope.saveProduct(data[i]);
             };
 
-            $scope.showInterface = true;
+            $rootScope.showInterface = true;
           })
           .error(function (data, status, headers, config) {
             console.log('data error');
@@ -183,9 +218,10 @@ angular.module('app.controllers', [])
     $scope.saveProduct = function (data) {
       var img1 = data.image1;
       productFactory.insert(data.product_id, data.name, data.sku, data.image1, data.image2, data.price, data.stock).then(function(result) {
-        //if(result.IMG_IMP){
+        console.log();
+        if(result.IMG_IMP == "true"){
           $scope.getSaveImagesProduct(img1, result+"/1");
-        //}
+        }
       });
     }
 
@@ -215,7 +251,6 @@ angular.module('app.controllers', [])
     $scope.doCreateOrderPHP = function() {
       configurationFactory.select().then(function(result) {
         salesOrderFactory.selectOnlyUnprocessed().then(function(resultOrder) {
-                        console.log(resultOrder);
           for (var i = 0; i <= resultOrder.length-1; i++) {
             var OrderAt = resultOrder[i];
             customerFactory.selectById(resultOrder[i].CUSTOMER_ID).then(function(resultCustomer) {
@@ -251,26 +286,27 @@ angular.module('app.controllers', [])
 
     $scope.processOneCustomer = function(data, address) {
       $rootScope.addreeIns = address;
-      customerFactory.insert(data.customer_id, data.firstname, data.lastname, data.email, data.taxvat, address).then(function(result){
-        return result;
-      });
+      customerFactory.insert(data.customer_id, data.firstname, data.lastname, data.email, data.taxvat, address);
     }
 
     $scope.getAllCustomersPHP = function() {
         configurationFactory.select().then(function(result) {
           var params = 'WS_URL='+result.WS_URL+'&WS_USER='+result.WS_LOGIN+'&WS_PASSWORD='+result.WS_PASS;
-          $scope.showInterface = false;
+          $rootScope.showInterface = false;
 
           $http.get(URLPHPCTRL + '/customers.php?'+ params )
             .success(function (data, status, headers, config) {
               customerFactory.deleteAll();
               customerAddressFactory.deleteAll();
+
+              $rootScope.impCustomerStatus = 'Importando Clientes aguarde.';
+              $rootScope.impCustomerAtual = 0;
+              $rootScope.impCustomerTot = data.length;
               for (var i = 0; i <= data.length-1; i++) {
                 var address = data[i].address;
                 $scope.processOneCustomer(data[i], data[i].address);
               };
 
-              $scope.showInterface = true;
             })
             .error(function (data, status, headers, config) {
               console.log('data error');
@@ -359,6 +395,8 @@ angular.module('app.controllers', [])
 
     $scope.removeFromCart = function(item) {
       $rootScope.totCar = 0;
+      $rootScope.ctrlArray = [];
+
       for(i = 0; i < $rootScope.cartItens.length; i++) { 
         if($rootScope.cartItens[i] == item){
           $rootScope.cartItens.splice(i, 1);
@@ -379,7 +417,6 @@ angular.module('app.controllers', [])
     $scope.loadAllOrders = function (){
       ionic.Platform.ready(function(){
         salesOrderFactory.selectWithData().then(function(resultOrder) {
-                console.log(resultOrder);
           $scope.ordersRel = resultOrder;
         });
       });
@@ -387,16 +424,23 @@ angular.module('app.controllers', [])
 
     $scope.showPayMenu = function() {
       metPagFactory.select().then(function(result){
-        $scope.payments = result;
+        $rootScope.payments = result;
+
+        $rootScope.ctrlArray = [];
+        for (var i = 0; i <= result.length-1; i++) {
+          $rootScope.ctrlArray[ result[i].MTP_ID ] = result[i].MTP_DESC;
+        };
+
         $scope.modalMethods.show();
       });
     }
 
     $scope.placeOrder = function() {
-      console.log('venda inserida');
-      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.PaymentMethod, 'N').then(function(result){
+      console.log( $rootScope.payments );
+      console.log( $rootScope.payments[$rootScope.PaymentMethod] );
+
+      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.customer[0].FIRSTNAME, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.ctrlArray[$rootScope.PaymentMethod], $rootScope.PaymentMethod, $rootScope.totCar, 'N').then(function(result){
         for (var i = 0; i <= $rootScope.cartItens.length - 1; i++) {
-          console.log( $rootScope.cartItens );
           salesOrderItemFactory.insert(result, $rootScope.cartItens[i].PRODUCT_ID, $rootScope.cartItens[i].QTY);
         };
 

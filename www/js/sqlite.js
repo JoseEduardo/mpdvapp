@@ -9,23 +9,24 @@ sqlite.run(function($ionicPlatform, $cordovaSQLite) {
       db = window.openDatabase("magepdv.db", '1', 'magepdv', 1024 * 1024 * 100); // browser
     }
 /*
-    $cordovaSQLite.execute(db, "DROP TABLE SALESORDER");
+
     $cordovaSQLite.execute(db, "DROP TABLE CUSTOMER");
     $cordovaSQLite.execute(db, "DROP TABLE CUSTOMER_ADDR");
     $cordovaSQLite.execute(db, "DROP TABLE SALESORDER_ITEM");
     $cordovaSQLite.execute(db, "DROP TABLE PRODUCT");
-*/
-//    $cordovaSQLite.execute(db, "DROP TABLE CONFIGURATION");
-//  $cordovaSQLite.execute(db, "DROP TABLE LOGIN");
 
+    $cordovaSQLite.execute(db, "DROP TABLE CONFIGURATION");
+    $cordovaSQLite.execute(db, "DROP TABLE LOGIN");
+*/
+//    $cordovaSQLite.execute(db, "DROP TABLE SALESORDER");
 
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS PRODUCT (ID integer primary key, PRODUCT_ID integer, NAME varchar(250), IMG_1 varchar(250), IMG_2 varchar(250), SKU varchar(30), PRICE real, STOCK real)");
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CONFIGURATION (ID integer primary key, WS_URL varchar(250), WS_LOGIN varchar(250), WS_PASS varchar(250), STOCK real, IMG_IMP varchar(5), STORE_ID integer)");
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CUSTOMER (ID integer primary key, ID_CUSTOMER integer, FIRSTNAME varchar(250), LASTNAME varchar(250), EMAIL varchar(250), TAXVAT varchar(250))");
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CUSTOMER_ADDR (ID integer primary key, CUSTOMER_ID integer, CUSTOMER_ADDRESS_ID integer, STREET varchar(250), REGION varchar(250) )");
 
-    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS SALESORDER (ID integer primary key, CUSTOMER_ID integer, CUSTOMER_ADDRESS_ID integer, SHIPP_METHOD varchar(250), PAYMENT_METHOD varchar(250), SYNC varchar(1), DTA_CREATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
-    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS SALESORDER_ITEM (ID integer primary key, ORDER_ID integer, ID_PROD integer, QTY float )");
+    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS SALESORDER (ID integer primary key, CUSTOMER_NAME varchar(250), CUSTOMER_ID integer, CUSTOMER_ADDRESS_ID integer, SHIPP_METHOD varchar(250), PAYMENT_METHOD varchar(250), ID_PAYMENT_METHOD varchar(250), TOT_VLR real, SYNC varchar(1), DTA_CREATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS SALESORDER_ITEM (ID integer primary key, ORDER_ID integer, ID_PROD integer, QTY float, PRICE real )");
 
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS MET_PAG (ID integer primary key, MTP_ID integer, MTP_DESC varchar(250) )");
 
@@ -121,18 +122,34 @@ sqlite.factory('productFactory', function($cordovaSQLite) {
   }
 });
 
-sqlite.factory('customerFactory', function($cordovaSQLite, customerAddressFactory) {
+sqlite.factory('customerFactory', function($cordovaSQLite, $rootScope, customerAddressFactory) {
+
   return {
     insert : function(ID_CUSTOMER, FIRSTNAME, LASTNAME, EMAIL, TAXVAT, ADDRESS){
       var query = "INSERT INTO CUSTOMER (ID_CUSTOMER, FIRSTNAME, LASTNAME, EMAIL, TAXVAT) VALUES (?, ?, ?, ?, ?);";
+      
       var values = [ID_CUSTOMER, FIRSTNAME, LASTNAME, EMAIL, TAXVAT];
 
-      return $cordovaSQLite.execute(db, query, values).then(
+      $cordovaSQLite.execute(db, query, values).then(
         function(res) {
-          customerAddressFactory.insert(res.insertId, ADDRESS.customer_address_id, ADDRESS.street, ADDRESS.region).then(function(){
-            console.log('Client');
-            return true;
-          });
+          console.log('Customer OK');
+          var queryAddr = "INSERT INTO CUSTOMER_ADDR (CUSTOMER_ID, CUSTOMER_ADDRESS_ID, STREET, REGION) VALUES (?, ?, ?, ?);";
+          var valuesAddr = [res.insertId, ADDRESS.customer_address_id, ADDRESS.stree, ADDRESS.region];
+
+          $cordovaSQLite.execute(db, queryAddr, valuesAddr).then(
+            function(resAddr) {
+              $rootScope.impCustomerAtual += 1;
+              if($rootScope.impCustomerAtual >= $rootScope.impCustomerTot){
+                console.log('Address OK');
+                $rootScope.showInterface = true;
+              }
+            },
+            function(err) {
+              console.log(err);
+              return null;
+            }
+          );
+
         },
         function(err) {
           console.log(err);
@@ -193,7 +210,6 @@ sqlite.factory('customerAddressFactory', function($cordovaSQLite) {
     insert : function(CUSTOMER_ID, CUSTOMER_ADDRESS_ID, STREET, REGION){
       var query = "INSERT INTO CUSTOMER_ADDR (CUSTOMER_ID, CUSTOMER_ADDRESS_ID, STREET, REGION) VALUES (?, ?, ?, ?);";
       var values = [CUSTOMER_ID, CUSTOMER_ADDRESS_ID, STREET, REGION];
-console.log('Client Insert'+values);
       return $cordovaSQLite.execute(db, query, values).then(
         function(res) {
           console.log('Client ADDR '+res.insertId);
@@ -225,9 +241,9 @@ console.log('Client Insert'+values);
 
 sqlite.factory('salesOrderFactory', function($cordovaSQLite) {
   return {
-    insert : function(CUSTOMER_ID, CUSTOMER_ADDRESS_ID, SHIPP_METHOD, PAYMENT_METHOD, SYNC){
-      var query = "INSERT INTO SALESORDER (CUSTOMER_ID, CUSTOMER_ADDRESS_ID, SHIPP_METHOD, PAYMENT_METHOD, SYNC) VALUES (?, ?, ?, ?, ?);";
-      var values = [CUSTOMER_ID, CUSTOMER_ADDRESS_ID, SHIPP_METHOD, PAYMENT_METHOD, SYNC];
+    insert : function(CUSTOMER_ID, CUSTOMER_NAME, CUSTOMER_ADDRESS_ID, SHIPP_METHOD, PAYMENT_METHOD, ID_PAYMENT_METHOD, TOT_VLR, SYNC){
+      var query = "INSERT INTO SALESORDER (CUSTOMER_ID, CUSTOMER_NAME, CUSTOMER_ADDRESS_ID, SHIPP_METHOD, PAYMENT_METHOD, ID_PAYMENT_METHOD, TOT_VLR, SYNC) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
+      var values = [CUSTOMER_ID, CUSTOMER_NAME, CUSTOMER_ADDRESS_ID, SHIPP_METHOD, PAYMENT_METHOD, ID_PAYMENT_METHOD, TOT_VLR, SYNC];
 
       return $cordovaSQLite.execute(db, query, values).then(
         function(res) {
