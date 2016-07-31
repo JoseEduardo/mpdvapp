@@ -9,8 +9,8 @@
 
             <div ng-show="!showInterface">
                 <img style="margin-left: 25%" src="img/spinner.gif" alt="loading" height="150" width="180">
-                <h4 style="color:#000000;text-align:center;" >{{impCustomerStatus}}</h4>
-
+                <h4 style="color:#000000;text-align:center;" >{{impCustomerStatus}}{{impProdStatus}}</h4>
+                <h4 style="color:#000000;text-align:center;" >{{impProdAtual}}{{impCustomerAtual}}/{{impProdTot}}{{impCustomerTot}}</h4>
             </div>
             <div ng-show="showInterface">
             	<button id="magentoPDV-button2" ng-click="doCreateOrderPHP()" style="color:#FFFFFF;" class=" button button-dark  button-block icon ion-android-arrow-up ">Descarregar Vendas</button>

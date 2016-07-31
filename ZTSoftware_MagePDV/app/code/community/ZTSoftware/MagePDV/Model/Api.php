@@ -17,8 +17,8 @@ class ZTSoftware_MagePDV_Model_Api extends Mage_Api_Model_Resource_Abstract
 		                "stock" => $product->getStockItem()->getQty(),
 		                "image1" => $product->getImageUrl(),
 		                "image2" => $product->getImageUrl(),
-		                "cod_barras" => $product->getData('codigobarra')
-
+		                "cod_barras" => $product->getData('codigobarra'),
+		                "group_price" => $product->getData('customer_groups_price')
         			);
 
         		array_push($retArray, $retArrayTmp);
@@ -52,7 +52,8 @@ class ZTSoftware_MagePDV_Model_Api extends Mage_Api_Model_Resource_Abstract
 			            "customer_id" => $customer->getId(),
 			            "taxvat" => $taxvat,            
 			            "email" => $customer->getEmail(),
-			            "address" => $addressRet
+			            "address" => $addressRet,
+			            "group_id" => $customer->getData('group_id')
         			);
 
         		array_push($result, $retArrayTmp);

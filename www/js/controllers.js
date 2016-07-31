@@ -5,11 +5,11 @@ angular.module('app.controllers', [])
 })
 
 .controller('printCtrl', function($scope, $rootScope, $cordovaPrinter, salesOrderFactory, customerFactory, salesOrderItemFactory ) {
-    $rootScope.print = function() {
+    $rootScope.print = function(orderToPrint) {
       $rootScope.orderPrint = [];
 
       document.addEventListener('deviceready', function () {
-        salesOrderFactory.selectOnlyUnprocessed().then(function(resultOrder) {
+        salesOrderFactory.select(orderToPrint.ID).then(function(resultOrder) {
           for (var i = 0; i <= resultOrder.length-1; i++) {
             var OrderAt = resultOrder[i];
             customerFactory.selectById(resultOrder[i].CUSTOMER_ID).then(function(resultCustomer) {
@@ -23,7 +23,7 @@ angular.module('app.controllers', [])
                 $rootScope.orderPrint.tot = OrderAt.TOT_VLR;
                 $rootScope.orderPrint.payMet = OrderAt.PAYMENT_METHOD;
                 $rootScope.orderPrint.items = prodOrder;
-
+ 
                 cordova.plugins.printer.isAvailable(
                   function (isAvailable, installedAppIds) {
                       if (isAvailable) {
@@ -73,7 +73,8 @@ angular.module('app.controllers', [])
           $rootScope.conn.STOCK = data.STOCK;
           $rootScope.conn.IMG_IMP = data.IMG_IMP;
           $rootScope.conn.STORE_ID = data.STORE_ID;
-console.log('getConfig');
+          $rootScope.conn.BARCODE = 1;
+
           $rootScope.saveConfiguration();
         })
         .error(function (data, status, headers, config) {
@@ -87,7 +88,7 @@ console.log('getConfig');
 
     $rootScope.saveConfiguration = function() {
       configurationFactory.deleteAll();
-      configurationFactory.insert($rootScope.conn.WS_URL, $rootScope.conn.WS_LOGIN, $rootScope.conn.WS_PASS, $rootScope.conn.STOCK, $rootScope.conn.IMG_IMP, $rootScope.conn.STORE_ID);
+      configurationFactory.insert($rootScope.conn.WS_URL, $rootScope.conn.WS_LOGIN, $rootScope.conn.WS_PASS, $rootScope.conn.STOCK, $rootScope.conn.IMG_IMP, $rootScope.conn.BARCODE, $rootScope.conn.STORE_ID);
     
       $rootScope.getAllLoginPHP();
       $rootScope.getAllMetPagPHP();
@@ -96,22 +97,24 @@ console.log('getConfig');
 
     $scope.loadConfiguration = function() {
       ionic.Platform.ready(function(){
-        $scope.conn.WS_URL = "";
-        $scope.conn.WS_LOGIN = "";
-        $scope.conn.WS_PASS = "";
-        $scope.conn.STOCK = "";
-        $scope.conn.IMG_IMP = "";
-        $scope.conn.STORE_ID = "";
+        $rootScope.conn.WS_URL = "";
+        $rootScope.conn.WS_LOGIN = "";
+        $rootScope.conn.WS_PASS = "";
+        $rootScope.conn.STOCK = "";
+        $rootScope.conn.IMG_IMP = "";
+        $rootScope.conn.STORE_ID = "";
+        $rootScope.conn.BARCODE = "";
         $rootScope.showLogin = false;
 
         configurationFactory.select().then(function(result) {
           if( result != null ){
-            $scope.conn.WS_URL = result.WS_URL;
-            $scope.conn.WS_LOGIN = result.WS_LOGIN;
-            $scope.conn.WS_PASS = result.WS_PASS;
-            $scope.conn.STOCK = result.STOCK;
-            $scope.conn.IMG_IMP = result.IMG_IMP;
-            $scope.conn.STORE_ID = result.STORE_ID;
+            $rootScope.conn.WS_URL = result.WS_URL;
+            $rootScope.conn.WS_LOGIN = result.WS_LOGIN;
+            $rootScope.conn.WS_PASS = result.WS_PASS;
+            $rootScope.conn.STOCK = result.STOCK;
+            $rootScope.conn.IMG_IMP = result.IMG_IMP;
+            $rootScope.conn.STORE_ID = result.STORE_ID;
+            $rootScope.conn.BARCODE = result.BARCODE;
 
             if(result.WS_URL){
               $rootScope.showLogin = true;
@@ -192,10 +195,13 @@ console.log('getConfig');
 
         $scope.result = "";
         $rootScope.showInterface = false;
-
+        $rootScope.impProdStatus = "Conectando com o Servidor.";
         $http.get(URLPHPCTRL + '/products.php?'+ params )
           .success(function (data, status, headers, config) {
             productFactory.deleteAll();
+
+            $rootScope.impCustomerAtual = "";
+            $rootScope.impCustomerTot = "";
 
             $rootScope.impProdTot = data.length;
             $rootScope.impProdAtual = 0;
@@ -204,7 +210,6 @@ console.log('getConfig');
               $scope.saveProduct(data[i]);
             };
 
-            $rootScope.showInterface = true;
           })
           .error(function (data, status, headers, config) {
             console.log('data error');
@@ -217,10 +222,16 @@ console.log('getConfig');
 
     $scope.saveProduct = function (data) {
       var img1 = data.image1;
-      productFactory.insert(data.product_id, data.name, data.sku, data.image1, data.image2, data.price, data.stock).then(function(result) {
-        console.log();
+      productFactory.insert(data.product_id, data.name, data.sku, data.image1, data.image2, data.price, data.stock, data.group_price).then(function(result) {
+
         if(result.IMG_IMP == "true"){
           $scope.getSaveImagesProduct(img1, result+"/1");
+        }else{
+          $rootScope.impProdAtual += 1;
+          if($rootScope.impProdAtual >= $rootScope.impProdTot){
+            $rootScope.impProdStatus = "";
+            $rootScope.showInterface = true;
+          }
         }
       });
     }
@@ -239,9 +250,15 @@ console.log('getConfig');
 
         $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
           .then(function(result) {
-            // Success!
+            $rootScope.impProdAtual += 1;
+            if($rootScope.impProdAtual >= $rootScope.impProdTot){
+              $rootScope.showInterface = true;
+            }
           }, function(err) {
-            // Error
+            $rootScope.impProdAtual += 1;
+            if($rootScope.impProdAtual >= $rootScope.impProdTot){
+              $rootScope.showInterface = true;
+            }
           }, function (progress) {
         });
       });
@@ -251,53 +268,61 @@ console.log('getConfig');
     $scope.doCreateOrderPHP = function() {
       configurationFactory.select().then(function(result) {
         salesOrderFactory.selectOnlyUnprocessed().then(function(resultOrder) {
-          for (var i = 0; i <= resultOrder.length-1; i++) {
-            var OrderAt = resultOrder[i];
-            customerFactory.selectById(resultOrder[i].CUSTOMER_ID).then(function(resultCustomer) {
-              salesOrderItemFactory.select(OrderAt.ID).then(function(resultOrderItem) {
-                var prodOrder = [];
-                for (var x = 0; x <= resultOrderItem.length-1; x++) {
-                  prodOrder.push( resultOrderItem[x] );
-                }
+          if(resultOrder){
+            for (var i = 0; i <= resultOrder.length-1; i++) {
+              var OrderAt = resultOrder[i];
+              customerFactory.selectById(resultOrder[i].CUSTOMER_ID).then(function(resultCustomer) {
+                salesOrderItemFactory.select(OrderAt.ID).then(function(resultOrderItem) {
+                  var prodOrder = [];
+                  for (var x = 0; x <= resultOrderItem.length-1; x++) {
+                    prodOrder.push( resultOrderItem[x] );
+                  }
 
-                var params = {
-                    WS_URL: result.WS_URL, 
-                    WS_USER: result.WS_LOGIN,
-                    WS_PASSWORD: result.WS_PASS,
-                    FEIRA: '1',
-                    STORE_ID: result.STORE_ID,
-                    PAYMENT: OrderAt.PAYMENT_METHOD,
-                    SHIPPING: OrderAt.SHIPP_METHOD,
-                    ADDRESS: OrderAt.CUSTOMER_ADDRESS_ID,
-                    CUSTOMER: resultCustomer,
-                    PRODUCT: prodOrder
-                };
+                  var params = {
+                      WS_URL: result.WS_URL, 
+                      WS_USER: result.WS_LOGIN,
+                      WS_PASSWORD: result.WS_PASS,
+                      FEIRA: '1',
+                      STORE_ID: result.STORE_ID,
+                      PAYMENT: OrderAt.PAYMENT_METHOD,
+                      SHIPPING: OrderAt.SHIPP_METHOD,
+                      ADDRESS: OrderAt.CUSTOMER_ADDRESS_ID,
+                      CUSTOMER: resultCustomer,
+                      PRODUCT: prodOrder
+                  };
 
-                $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
-                  salesOrderFactory.checkOrder(OrderAt.ID);
-                  console.log( res.data );
+                  $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
+                    salesOrderFactory.checkOrder(OrderAt.ID);
+                    console.log( res.data );
+                  });
                 });
               });
-            });
-          };
+            };
+          }else{
+            alert('Não ha vendas para serem exportadas.');
+          }
         });
       });
     } 
 
     $scope.processOneCustomer = function(data, address) {
       $rootScope.addreeIns = address;
-      customerFactory.insert(data.customer_id, data.firstname, data.lastname, data.email, data.taxvat, address);
+      customerFactory.insert(data.customer_id, data.group_id, data.firstname, data.lastname, data.email, data.taxvat, address);
     }
 
     $scope.getAllCustomersPHP = function() {
         configurationFactory.select().then(function(result) {
           var params = 'WS_URL='+result.WS_URL+'&WS_USER='+result.WS_LOGIN+'&WS_PASSWORD='+result.WS_PASS;
           $rootScope.showInterface = false;
-
+          $rootScope.impCustomerStatus = "Conectando com o Servidor.";
+          
           $http.get(URLPHPCTRL + '/customers.php?'+ params )
             .success(function (data, status, headers, config) {
               customerFactory.deleteAll();
               customerAddressFactory.deleteAll();
+
+              $rootScope.impProdTot = "";
+              $rootScope.impProdAtual = "";
 
               $rootScope.impCustomerStatus = 'Importando Clientes aguarde.';
               $rootScope.impCustomerAtual = 0;
@@ -351,7 +376,8 @@ console.log('getConfig');
     $scope.imageProd1 = null;
 
     $scope.searchBarCode = function(sku) {
-      productFactory.select(sku).then(function(result) {
+      console.log($rootScope.customer[0]);
+      productFactory.select(sku, $rootScope.customer[0].GROUP_ID).then(function(result) {
         $scope.currentItem = result;
         $scope.qtyProd = 1;
         $scope.noStock = false;
@@ -436,12 +462,12 @@ console.log('getConfig');
     }
 
     $scope.placeOrder = function() {
-      console.log( $rootScope.payments );
-      console.log( $rootScope.payments[$rootScope.PaymentMethod] );
+      console.log( $rootScope.PaymentMethod );
+      console.log( $rootScope.ctrlArray );
 
       salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.customer[0].FIRSTNAME, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.ctrlArray[$rootScope.PaymentMethod], $rootScope.PaymentMethod, $rootScope.totCar, 'N').then(function(result){
         for (var i = 0; i <= $rootScope.cartItens.length - 1; i++) {
-          salesOrderItemFactory.insert(result, $rootScope.cartItens[i].PRODUCT_ID, $rootScope.cartItens[i].QTY);
+          salesOrderItemFactory.insert(result, $rootScope.cartItens[i].PRODUCT_ID, $rootScope.cartItens[i].SKU, $rootScope.cartItens[i].PRICE, $rootScope.cartItens[i].NAME, $rootScope.cartItens[i].QTY);
         };
 
         var alertPopup = $ionicPopup.alert({
@@ -527,14 +553,38 @@ console.log('getConfig');
 
 })
 
-.controller("barcodeCtrl", function($scope, $cordovaBarcodeScanner) {
+.controller("barcodeCtrl", function($scope, $rootScope, $cordovaBarcodeScanner) {
+    $rootScope.showBarCodeRTC = false;
     $scope.barcodeNumber = "";
     $scope.scanBarcode = function() {
-        $cordovaBarcodeScanner.scan().then(function(imageData) {
-            $scope.barcodeNumber = imageData.text;
-        }, function(error) {
-            console.log("An error happened -> " + error);
-        });
+      console.log($rootScope.conn.BARCODE);
+        if( $rootScope.conn.BARCODE == "1" ){
+          $cordovaBarcodeScanner.scan().then(function(imageData) {
+              $scope.barcodeNumber = imageData.text;
+          }, function(error) {
+              console.log(error);
+          });
+        }else{
+          $rootScope.showBarCodeRTC = true;
+          
+          ionic.Platform.ready(function(){
+            barcode.config.start = 0.1;
+            barcode.config.end = 0.9;
+            barcode.config.video = '#barcodevideo';
+            barcode.config.canvas = '#barcodecanvas';
+            barcode.config.canvasg = '#barcodecanvasg';
+            barcode.setHandler(function(barcode) {
+              jQuery('#result').html(barcode);
+            });
+            barcode.init();
+
+            jQuery('#result').bind('DOMSubtreeModified', function(e) {
+              console.log('asdasdasdasd'); 
+            });
+
+          });
+        }
+
     };
 
 })

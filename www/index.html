@@ -10,6 +10,8 @@
     <script src="cordova.js"></script>
     <script src="lib/ngCordova/dist/ng-cordova.js"></script>
     <script src="lib/angular-md5/angular-md5.min.js"></script>
+    <script src="lib/barcode/jquery.js"></script>
+    <script src="lib/barcode/barcode.js"></script>
 
     <!-- IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above
     <link href="css/ionic.app.css" rel="stylesheet">
@@ -59,7 +61,7 @@
             <ion-nav-bar class="bar-stable">
                 <ion-nav-back-button></ion-nav-back-button>
                 <ion-nav-buttons side="left">
-                    <button ng-click="loadConfiguration()" class="button button-icon button-clear ion-navicon" menu-toggle="left"></button>
+                    <button class="button button-icon button-clear ion-navicon" menu-toggle="left"></button>
                 </ion-nav-buttons>
             </ion-nav-bar>
             <ion-nav-view></ion-nav-view>
@@ -71,9 +73,8 @@
             <ion-content padding="false" class="side-menu-left has-header">
                 <form id="menu-form8" class="list " data-componentid="form8">
                     <ion-item>
-                        <ion-checkbox ng-model="conn.IMG_IMP" ng-checked="IMG_IMP" id="menu-toggle1">Importar Imagens</ion-checkbox >
+                        <ion-checkbox ng-model="conn.IMG_IMP" ng-checked="conn.IMG_IMP" id="menu-toggle1">Importar Imagens</ion-checkbox >
                     </ion-item>
-                    {{ conn.IMG_IMP }}
                     <ion-item class="range range-dark " id="menu-range2" data-componentid="range2">Estoque P.
                         <input type="range" ng-model="conn.STOCK" value="50" min="0" max="100">
                     </ion-item>
@@ -88,7 +89,18 @@
                     </label>
                     <label class="item item-input " id="menu-input10" data-componentid="input10">
                         <input type="text" ng-model="conn.STORE_ID" placeholder="Codigo da Loja">
-                    </label>                   
+                    </label>
+                    <ion-item>
+                        <label class = "item item-input item-select">
+                            <div class = "input-label">
+                                Cod Bar
+                            </div>
+                            <select ng-model="conn.BARCODE">
+                                <option value="1" selected>BarCode Default</option>
+                                <option value="2">BarCode Advanced</option>
+                            </select> 
+                        </label>    
+                    </ion-item>          
                     <button id="venda-button11" ng-click="saveConfiguration()" class=" button button-balanced  button-block ">SALVAR</button>
                 </form>
             </ion-content>

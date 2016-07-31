@@ -6,11 +6,21 @@
                 <span style="display: block; margin-left: 6%; margin-right: auto;">Para continuar a venda, informe um Cliente válido</span>
             </div>
             <div id="freeOrder" ng-show="customer.length > 0">
-                <div ng-controller="vendaCtrl">
+                <div ng-controller="barcodeCtrl" ng-show="showBarCodeRTC">
+                    <div id="barcode">
+                        <video id="barcodevideo" autoplay></video>
+                        <canvas id="barcodecanvasg" ></canvas>
+                    </div>
+                    <canvas id="barcodecanvas" ></canvas>
+                    <div id="result"></div>
+                    <button ng-click="showBarCodeRTC = false" style="width:50% !important; display:inline;" class=" button button-balanced  button-block ">CANCELAR</button>
+                </div>
+
+                <div ng-controller="vendaCtrl" ng-show="!showBarCodeRTC">
                     <input ng-model="barcodeNumber" ng-change="searchBarCode(barcodeNumber)" style="border:1px solid #ddd; display:inline; width: 50%; border-radius: 2px" type="text" name="barcode"><b>x</b>
                     <input ng-model="qtyProd" style="border:1px solid #ddd; display:inline; width: 45%; border-radius: 2px" type="text" name="qt">
 
-                    <button ng-show="!currentItem" id="venda-button16" style="width:48% !important; display:inline;" ng-click="scanBarcode()" class="button button-positive button-block ">SCAN</button>
+                    <button ng-show="!currentItem" id="venda-button16" style="width:48% !important; display:inline;" ng-controller="barcodeCtrl" ng-click="scanBarcode()" class="button button-positive button-block ">SCAN</button>
                     <button ng-show="currentItem" id="venda-button18" style="width:48% !important; display:inline;" ng-click="addToCart()" class="button button-positive button-block ">ADICIONAR</button>
                     <button id="venda-button11" ng-click="showPayMenu()" style="width:50% !important; display:inline;" class=" button button-balanced  button-block ">FINALIZAR</button>
 
@@ -64,14 +74,22 @@
 <script id="methods.html" type="text/ng-template">
    <ion-modal-view>
      <ion-header-bar>
-       <h1 class="title">Medoto de Pagamento/Envio</h1>
+       <h1 class="title">Medoto de Pagamento</h1>
       </ion-header-bar>
       <ion-content>
-        <select name="repeatSelect" id="repeatSelect" ng-model="PaymentMethod.value">
-            <option ng-repeat="payment in payments" value="{{payment.MTP_ID}}">{{payment.MTP_DESC}}</option>
-        </select>
-
-        <button ng-click="setPayMethod(PaymentMethod.value)" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">CONFIRMAR</button>
+        <ion-item>
+            <label class = "item item-input item-select">
+                <div class = "input-label">
+                    Met Pag
+                </div>
+                <select name="repeatSelect" id="repeatSelect" ng-model="PaymentMethod.value">
+                    <option ng-repeat="payment in payments" value="{{payment.MTP_ID}}">{{payment.MTP_DESC}}</option>
+                </select>
+            </label> 
+        </ion-item>
+        <ion-item>
+            <button ng-click="setPayMethod(PaymentMethod.value)" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">CONFIRMAR</button>
+        </ion-item>
       </ion-content>
     </ion-modal-view>
 </script>
