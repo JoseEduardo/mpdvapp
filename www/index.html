@@ -95,10 +95,8 @@
                             <div class = "input-label">
                                 Cod Bar
                             </div>
-                            <select ng-model="conn.BARCODE">
-                                <option value="1" selected>BarCode Default</option>
-                                <option value="2">BarCode Advanced</option>
-                            </select> 
+                            <select ng-model="conn.BARCODE" ng-options="item for item in barcodesOpts">
+                            </select>
                         </label>    
                     </ion-item>          
                     <button id="venda-button11" ng-click="saveConfiguration()" class=" button button-balanced  button-block ">SALVAR</button>

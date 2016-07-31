@@ -11,18 +11,18 @@ sqlite.run(function($ionicPlatform, $cordovaSQLite) {
 
 //    $cordovaSQLite.execute(db, "DROP TABLE CUSTOMER");
 //    $cordovaSQLite.execute(db, "DROP TABLE CUSTOMER_ADDR");
-    $cordovaSQLite.execute(db, "DROP TABLE SALESORDER_ITEM");
+//    $cordovaSQLite.execute(db, "DROP TABLE SALESORDER_ITEM");
 //    $cordovaSQLite.execute(db, "DROP TABLE PRODUCT");
 
 //    $cordovaSQLite.execute(db, "DROP TABLE CONFIGURATION");
 //    $cordovaSQLite.execute(db, "DROP TABLE LOGIN");
 
-    $cordovaSQLite.execute(db, "DROP TABLE SALESORDER");
+//    $cordovaSQLite.execute(db, "DROP TABLE SALESORDER");
 
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS PRODUCT (ID integer primary key, PRODUCT_ID integer, NAME varchar(250), IMG_1 varchar(250), IMG_2 varchar(250), SKU varchar(30), PRICE real, STOCK real)");
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS PRODUCT_PRICE (ID integer primary key, PRODUCT_ID integer, GROUP_ID integer, PRICE real)");
 
-    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CONFIGURATION (ID integer primary key, WS_URL varchar(250), WS_LOGIN varchar(250), WS_PASS varchar(250), STOCK real, IMG_IMP varchar(5), BARCODE integer , STORE_ID integer)");
+    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CONFIGURATION (ID integer primary key, WS_URL varchar(250), WS_LOGIN varchar(250), WS_PASS varchar(250), STOCK real, IMG_IMP varchar(5), BARCODE integer, STORE_ID integer)");
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CUSTOMER (ID integer primary key, ID_CUSTOMER integer, GROUP_ID integer, FIRSTNAME varchar(250), LASTNAME varchar(250), EMAIL varchar(250), TAXVAT varchar(250))");
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS CUSTOMER_ADDR (ID integer primary key, CUSTOMER_ID integer, CUSTOMER_ADDRESS_ID integer, STREET varchar(250), REGION varchar(250) )");
 
@@ -60,6 +60,7 @@ sqlite.factory('configurationFactory', function($cordovaSQLite) {
     return $cordovaSQLite.execute(db, query).then(
       function(res) {
         if (res.rows.length > 0) {
+          console.log(res.rows.item(0));
           return res.rows.item(0);
         } else {
           return null;
@@ -74,7 +75,7 @@ sqlite.factory('configurationFactory', function($cordovaSQLite) {
   }
 });
 
-sqlite.factory('productFactory', function($cordovaSQLite) {
+sqlite.factory('productFactory', function($cordovaSQLite, $rootScope) {
   return {
     insert : function(productID, name, sku, img1, img2, price, stock, group_price){
 	    var query = "INSERT INTO PRODUCT (PRODUCT_ID, NAME, SKU, IMG_1, IMG_2, PRICE, STOCK) VALUES (?, ?, ?, ?, ?, ?, ?);";
@@ -83,12 +84,26 @@ sqlite.factory('productFactory', function($cordovaSQLite) {
       console.log(values);
      	return $cordovaSQLite.execute(db, query, values).then(
 		    function(res) {
-          console.log('Product');
           angular.forEach(group_price, function(value, key) {
             var queryPrice = "INSERT INTO PRODUCT_PRICE (PRODUCT_ID, GROUP_ID, PRICE) VALUES (?, ?, ?);";
             var valuesPrice = [productID, key, value];
-            console.log(valuesPrice);
-            $cordovaSQLite.execute(db, queryPrice, valuesPrice);
+            console.log(productID);
+            $cordovaSQLite.execute(db, queryPrice, valuesPrice).then(
+              function(res) {
+                $rootScope.impProdAtual = 0;
+                $rootScope.impProdStatus = "Importando Preços aguarde.";
+
+                if($rootScope.impProdAtual >= $rootScope.impProdTot){
+                  $rootScope.impProdStatus = "";
+                  $rootScope.impProdAtual = "";
+                  $rootScope.impProdTot = "";
+                  $rootScope.showInterface = true;
+                }
+              },
+              function(err) {
+                console.log(err);
+              }
+            );
           });
 
 		      return res.insertId;
@@ -99,18 +114,19 @@ sqlite.factory('productFactory', function($cordovaSQLite) {
 	 	);
     },
     select : function(sku, id_groupd_customer){
-    	var query = "SELECT PRD.PRODUCT_ID, PRD.NAME, PRD.IMG_1, PRD.IMG_2, PRD.SKU, PRP.PRICE, PRD.STOCK FROM PRODUCT PRD INNER JOIN PRODUCT_PRICE PRP ON PRD.PRODUCT_ID = PRP.PRODUCT_ID WHERE PRD.SKU = ? AND PRP.GROUP_ID = ?";
-  		var values = [sku, id_groupd_customer];
-      console.log(values);
+    	var query = "SELECT PRD.PRODUCT_ID, PRD.NAME, PRD.IMG_1, PRD.IMG_2, PRD.SKU, PRP.PRICE, PRD.STOCK FROM PRODUCT PRD INNER JOIN PRODUCT_PRICE PRP ON PRD.PRODUCT_ID = PRP.PRODUCT_ID WHERE PRD.SKU = '"+sku+"' AND PRP.GROUP_ID = '"+id_groupd_customer+"'";
 
-		return $cordovaSQLite.execute(db, query, values).then(
+		return $cordovaSQLite.execute(db, query).then(
 			function(res) {
 			  if (res.rows.length > 0) {
 			    return res.rows.item(0);
 			  } else {
-			    console.log('No records found');
+          console.log('Record not found');
 			  }
-			}
+			},
+      function(err) {
+        console.log(err);
+      }
 		);
     },
     count : function(sku){

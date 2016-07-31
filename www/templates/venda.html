@@ -34,12 +34,12 @@
                                 Estoque indisponivel
                             </p>
                         </div>
-                        <p id="venda-markdown2" style="color:#000000;" class=" ">{{cartItens.length}} itens no Carrinho - R$ {{ totCar }}</p>
+                        <p id="venda-markdown2" style="color:#000000;" class=" ">{{cartItens.length}} itens no Carrinho - {{ totCar | currency:"R$" }}</p>
                         <ion-list>
                             <ion-item-sliding ng-repeat="x in cartItens">
                                 <ion-item class="item-icon-right">
                                 <div id="edtQty" ng-click="editQtyCart(x)">
-                                    [{{ x.QTY }}]  {{ x.NAME }} - {{ x.PRICE }}
+                                    [{{ x.QTY }}]  {{ x.NAME }} - {{ x.PRICE | currency:"R$" }}
                                 </div>
                                 <i class="icon ion-close-round" ng-click="removeFromCart(x)"></i>
                                 </ion-item>
@@ -73,22 +73,23 @@
 
 <script id="methods.html" type="text/ng-template">
    <ion-modal-view>
-     <ion-header-bar>
+      <ion-header-bar>
        <h1 class="title">Medoto de Pagamento</h1>
       </ion-header-bar>
       <ion-content>
         <ion-item>
             <label class = "item item-input item-select">
                 <div class = "input-label">
-                    Met Pag
+                    Metodo Pag.
                 </div>
-                <select name="repeatSelect" id="repeatSelect" ng-model="PaymentMethod.value">
-                    <option ng-repeat="payment in payments" value="{{payment.MTP_ID}}">{{payment.MTP_DESC}}</option>
+                <select ng-model="PaymentMethod.value" ng-options="item.MTP_DESC for item in payments">
+                 <option value="">Escolha um metodo</option>
                 </select>
-            </label> 
-        </ion-item>
+                {{PaymentMethod.value}}
+            </label>    
+        </ion-item> 
         <ion-item>
-            <button ng-click="setPayMethod(PaymentMethod.value)" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">CONFIRMAR</button>
+            <button ng-click="setPayMethod(PaymentMethod)" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">CONFIRMAR</button>
         </ion-item>
       </ion-content>
     </ion-modal-view>

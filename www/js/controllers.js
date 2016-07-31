@@ -62,6 +62,15 @@ angular.module('app.controllers', [])
     $rootScope.impProdAtual = 0;
     $rootScope.impProdStatus = "";
 
+    $rootScope.conn.WS_URL = "";
+    $rootScope.conn.WS_LOGIN = "";
+    $rootScope.conn.WS_PASS = "";
+    $rootScope.conn.STOCK = "";
+    $rootScope.conn.IMG_IMP = "";
+    $rootScope.conn.STORE_ID = "";
+    $rootScope.conn.BARCODE = 1;
+    $rootScope.barcodesOpts = ['Barcode Default', 'Barcode Advanced'];
+
     var URLPHPCTRL = 'http://magepdv-shaykie.rhcloud.com';
 
     $scope.getConfigs = function(emp) {
@@ -103,7 +112,7 @@ angular.module('app.controllers', [])
         $rootScope.conn.STOCK = "";
         $rootScope.conn.IMG_IMP = "";
         $rootScope.conn.STORE_ID = "";
-        $rootScope.conn.BARCODE = "";
+        $rootScope.conn.BARCODE = 1;
         $rootScope.showLogin = false;
 
         configurationFactory.select().then(function(result) {
@@ -230,7 +239,7 @@ angular.module('app.controllers', [])
           $rootScope.impProdAtual += 1;
           if($rootScope.impProdAtual >= $rootScope.impProdTot){
             $rootScope.impProdStatus = "";
-            $rootScope.showInterface = true;
+            //$rootScope.showInterface = true;
           }
         }
       });
@@ -374,6 +383,8 @@ angular.module('app.controllers', [])
     $rootScope.cartItens = [];
     $scope.noStock = false;
     $scope.imageProd1 = null;
+    $scope.PaymentMethod = [];
+    $scope.PaymentMethod.value = null;
 
     $scope.searchBarCode = function(sku) {
       console.log($rootScope.customer[0]);
@@ -465,7 +476,7 @@ angular.module('app.controllers', [])
       console.log( $rootScope.PaymentMethod );
       console.log( $rootScope.ctrlArray );
 
-      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.customer[0].FIRSTNAME, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.ctrlArray[$rootScope.PaymentMethod], $rootScope.PaymentMethod, $rootScope.totCar, 'N').then(function(result){
+      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.customer[0].FIRSTNAME, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.ctrlArray[$rootScope.PaymentMethod.ID], $rootScope.PaymentMethod.ID, $rootScope.totCar, 'N').then(function(result){
         for (var i = 0; i <= $rootScope.cartItens.length - 1; i++) {
           salesOrderItemFactory.insert(result, $rootScope.cartItens[i].PRODUCT_ID, $rootScope.cartItens[i].SKU, $rootScope.cartItens[i].PRICE, $rootScope.cartItens[i].NAME, $rootScope.cartItens[i].QTY);
         };
@@ -558,7 +569,7 @@ angular.module('app.controllers', [])
     $scope.barcodeNumber = "";
     $scope.scanBarcode = function() {
       console.log($rootScope.conn.BARCODE);
-        if( $rootScope.conn.BARCODE == "1" ){
+        if( $rootScope.conn.BARCODE == "Barcode Default" ){
           $cordovaBarcodeScanner.scan().then(function(imageData) {
               $scope.barcodeNumber = imageData.text;
           }, function(error) {

@@ -71,8 +71,8 @@
                         <td>{{ x.SKU }}</td>
                         <td>{{ x.DESC }}</td>
                         <td>{{ x.QTY }}</td>
-                        <td>R$ {{ x.PRICE }}</td>
-                        <td>R$ {{ x.QTY * x.PRICE }}</td>
+                        <td>{{ x.PRICE | currency:"R$" }}</td>
+                        <td>{{ x.QTY * x.PRICE | currency:"R$" }}</td>
                       </tr>
                   </tbody>
                 </table>
@@ -83,7 +83,7 @@
               <div align="right">
                 <h3 style="margin-top: 0px; margin-bottom: 0px;">
                   <span class="label label-primary">Total</span>
-                  <span id="spTotal2" class="label label-primary">R$ {{ orderPrint.tot }}*</span>
+                  <span id="spTotal2" class="label label-primary">{{ orderPrint.tot | currency:"R$" }}*</span>
                 </h3>
               </div>
             </div>
