@@ -473,17 +473,22 @@ angular.module('app.controllers', [])
     }
 
     $scope.placeOrder = function() {
-      console.log( $rootScope.PaymentMethod );
-      console.log( $rootScope.ctrlArray );
-
       salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.customer[0].FIRSTNAME, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.ctrlArray[$rootScope.PaymentMethod.ID], $rootScope.PaymentMethod.ID, $rootScope.totCar, 'N').then(function(result){
         for (var i = 0; i <= $rootScope.cartItens.length - 1; i++) {
           salesOrderItemFactory.insert(result, $rootScope.cartItens[i].PRODUCT_ID, $rootScope.cartItens[i].SKU, $rootScope.cartItens[i].PRICE, $rootScope.cartItens[i].NAME, $rootScope.cartItens[i].QTY);
         };
 
-        var alertPopup = $ionicPopup.alert({
+        var alertPopup = $ionicPopup.confirm({
           title: 'Venda',
-          template: 'Finalizada com sucesso.'
+          template: 'Finalizada com sucesso, deseja imprimir?'
+        });
+
+        alertPopup.then(function(res) {
+          if(res) {
+            var objPrint = [];
+            objPrint.ID = result;
+            $rootScope.print(objPrint);
+          }
         });
 
         $rootScope.totCar = 0;
@@ -548,7 +553,7 @@ angular.module('app.controllers', [])
       customerFactory.select(email).then(function(result) {
         $rootScope.customer = [];
         $scope.currentItem = result;
-        console.log(result);
+
         if( result != null ){
           $rootScope.customer.push($scope.currentItem);
           customerAddressFactory.select(result['ID']).then(function(result) {

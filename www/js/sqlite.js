@@ -60,7 +60,6 @@ sqlite.factory('configurationFactory', function($cordovaSQLite) {
     return $cordovaSQLite.execute(db, query).then(
       function(res) {
         if (res.rows.length > 0) {
-          console.log(res.rows.item(0));
           return res.rows.item(0);
         } else {
           return null;

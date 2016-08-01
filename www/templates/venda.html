@@ -6,6 +6,8 @@
                 <span style="display: block; margin-left: 6%; margin-right: auto;">Para continuar a venda, informe um Cliente válido</span>
             </div>
             <div id="freeOrder" ng-show="customer.length > 0">
+                <div ng-controller="printCtrl">
+                </div>
                 <div ng-controller="barcodeCtrl" ng-show="showBarCodeRTC">
                     <div id="barcode">
                         <video id="barcodevideo" autoplay></video>
@@ -39,7 +41,7 @@
                             <ion-item-sliding ng-repeat="x in cartItens">
                                 <ion-item class="item-icon-right">
                                 <div id="edtQty" ng-click="editQtyCart(x)">
-                                    [{{ x.QTY }}]  {{ x.NAME }} - {{ x.PRICE | currency:"R$" }}
+                                    [{{ x.QTY }}]  {{ x.NAME | limitTo:25 }} - {{ x.PRICE | currency:"R$" }}
                                 </div>
                                 <i class="icon ion-close-round" ng-click="removeFromCart(x)"></i>
                                 </ion-item>
@@ -52,6 +54,92 @@
         </form>
     </ion-content>
 </ion-view>
+
+<!-- RELATORIO -->
+<div id="repForPrint" ng-controller="vendaCtrl" class="display: none;">
+    <div class="container-fluid">
+        <div class="row" id="cabecalho" style="">
+            <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+                <table border="0">
+                    <tbody>
+                      <tr>
+                      <td style="width: 130px;">
+                        <img src="http://www.finaideia.com.br/skin/frontend/default/theme389/images/logo.png" alt="logo" style="width: 100%;">
+                      </td>
+                      <td style="padding-left: 15px; vertical-align: top;">
+                        <strong>ISA SPIVACK EPP</strong><br>
+                        Rua Raul Pompéia, 451 - Vila Pompéia<br>
+                        São Paulo - SP - 05025010<br>
+                        Tel./Fax.: 11 33314445 - vendas@finaideia.com.br
+                      </td>
+                      </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <div class="row">
+    <!-- CABECALHO -->
+            <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+               <h1 style="font-size: 14px; cursor: pointer; margin-top: 20px; margin-bottom: 0px; font-weight: bold;" class="page-header">
+                {{ orderPrint.customer }}
+                </h1>
+            </div>
+
+    <!-- GRID -->
+            <div class="table-responsive" style="clear: both">
+                <table class="table table-striped" style="margin-bottom: 0px;">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Descrição</th>
+                      <th>Qtd</th>
+                      <th>Valor</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+
+                  <tbody id="gridProd">
+                      <tr ng-repeat="x in orderPrint.items">
+                        <td>{{ x.SKU }}</td>
+                        <td>{{ x.DESC }}</td>
+                        <td>{{ x.QTY }}</td>
+                        <td>{{ x.PRICE | currency:"R$" }}</td>
+                        <td>{{ x.QTY * x.PRICE | currency:"R$" }}</td>
+                      </tr>
+                  </tbody>
+                </table>
+            </div>
+
+    <!-- TOTAL -->
+            <div id="total-geral" style="" class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+              <div align="right">
+                <h3 style="margin-top: 0px; margin-bottom: 0px;">
+                  <span class="label label-primary">Total</span>
+                  <span id="spTotal2" class="label label-primary">{{ orderPrint.tot | currency:"R$" }}*</span>
+                </h3>
+              </div>
+            </div>
+
+    <!-- OBSERVACAO -->
+            <div id="observacao-pedido" style="" class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+              <div>
+                <p style="font-weight: bold; font-size: 14px; margin-top: 5px;">
+                  Forma de pagamento: <span id="forma_pagto">{{ orderPrint.payMet }}</span>
+                </p>
+                <p style="font-weight: bold; margin-top: 5px;">
+                  * Cadastro sujeito a análise de crédito. Valores sujeitos a alterações de impostos.
+                </p>
+              </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- RELATORIO -->
+
+
 
 <script id="editcart.html" type="text/ng-template">
    <ion-modal-view>
