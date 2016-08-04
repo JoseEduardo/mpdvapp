@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
-<project name="NCCV">
-
-  <property name="keystore" value="${basedir}/environment/key/play/nccv.keystore"/>
+<project name="MagePDV">
+  <property name="keystore" value="${basedir}/magepdv-key.keystore"/>
   <property name="armv7Unsigned" value="${basedir}/platforms/android/build/outputs/apk/android-armv7-release-unsigned.apk"/>
   <property name="x86Unsigned" value="${basedir}/platforms/android/build/outputs/apk/android-x86-release-unsigned.apk"/>
   <property name="armv7Signed" value="${basedir}/platforms/android/build/outputs/apk/android-armv7-release-signed.apk"/>
