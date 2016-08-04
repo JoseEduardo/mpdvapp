@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<project name="NCCV">
+
+  <property name="keystore" value="${basedir}/environment/key/play/nccv.keystore"/>
+  <property name="armv7Unsigned" value="${basedir}/platforms/android/build/outputs/apk/android-armv7-release-unsigned.apk"/>
+  <property name="x86Unsigned" value="${basedir}/platforms/android/build/outputs/apk/android-x86-release-unsigned.apk"/>
+  <property name="armv7Signed" value="${basedir}/platforms/android/build/outputs/apk/android-armv7-release-signed.apk"/>
+  <property name="x86Signed" value="${basedir}/platforms/android/build/outputs/apk/android-x86-release-signed.apk"/>
+
+  <target name="release-android">
+    <exec executable="cmd.exe">
+      <arg value="/C"/>
+      <arg value="cordova"/>
+      <arg value="clean"/>
+    </exec>
+
+    <exec executable="cmd.exe">
+      <arg value="/C"/>
+      <arg value="gulp"/>
+      <arg value="replace"/>
+      <arg value="--env"/>
+      <arg value="production"/>
+    </exec>
+
+    <exec executable="cmd.exe">
+      <arg value="/C"/>
+      <arg value="ionic"/>
+      <arg value="build"/>
+      <arg value="android"/>
+      <arg value="--release"/>
+    </exec>
+
+    <signjar jar="${armv7Unsigned}" sigalg="SHA1withRSA" digestalg="SHA1" keystore="${keystore}" alias="nccv" storepass="esu9GPE12tms"/>
+    <signjar jar="${x86Unsigned}" sigalg="SHA1withRSA" digestalg="SHA1" keystore="${keystore}" alias="nccv" storepass="esu9GPE12tms"/>
+
+    <exec executable="cmd.exe">
+      <arg value="/C"/>
+      <arg value="zipalign"/>
+      <arg value="-v"/>
+      <arg value="4"/>
+      <arg value="${armv7Unsigned}"/>
+      <arg value="${armv7Signed}"/>
+    </exec>
+
+    <exec executable="cmd.exe">
+      <arg value="/C"/>
+      <arg value="zipalign"/>
+      <arg value="-v"/>
+      <arg value="4"/>
+      <arg value="${x86Unsigned}"/>
+      <arg value="${x86Signed}"/>
+    </exec>
+
+    <exec executable="cmd.exe">
+      <arg value="/C"/>
+      <arg value="gulp"/>
+      <arg value="replace"/>
+      <arg value="--env"/>
+      <arg value="development"/>
+    </exec>
+  </target>
+
+</project>
