@@ -29,8 +29,8 @@
       <arg value="--release"/>
     </exec>
 
-    <signjar jar="${armv7Unsigned}" sigalg="SHA1withRSA" digestalg="SHA1" keystore="${keystore}" alias="nccv" storepass="esu9GPE12tms"/>
-    <signjar jar="${x86Unsigned}" sigalg="SHA1withRSA" digestalg="SHA1" keystore="${keystore}" alias="nccv" storepass="esu9GPE12tms"/>
+    <signjar jar="${armv7Unsigned}" sigalg="SHA1withRSA" digestalg="SHA1" keystore="${keystore}" alias="magepdv" storepass="97318053"/>
+    <signjar jar="${x86Unsigned}" sigalg="SHA1withRSA" digestalg="SHA1" keystore="${keystore}" alias="magepdv" storepass="97318053"/>
 
     <exec executable="cmd.exe">
       <arg value="/C"/>

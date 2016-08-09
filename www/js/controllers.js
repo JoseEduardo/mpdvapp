@@ -48,7 +48,7 @@ angular.module('app.controllers', [])
 
 })
 
-.controller('APICtrl', function($scope, $http, $rootScope, $cordovaFileTransfer, $cordovaDevice, productFactory, configurationFactory, customerFactory, customerAddressFactory, salesOrderFactory, salesOrderItemFactory, loginFactory, metPagFactory) {
+.controller('APICtrl', function($scope, $http, $rootScope, $cordovaFileTransfer, $cordovaDevice, productFactory, configurationFactory, customerFactory, customerAddressFactory, salesOrderFactory, salesOrderItemFactory, loginFactory, metPagFactory, customerGroupFactory) {
   //http://magepdv-shaykie.rhcloud.com/products.php?WS_URL=http://magento.db1.com.br/magento_hom/index.php&WS_USER=anymarket&WS_PASSWORD=anymarket&PORC_STOCK=100
     $rootScope.showInterface = true; 
     $rootScope.conn = [];
@@ -216,7 +216,7 @@ angular.module('app.controllers', [])
             $rootScope.impProdAtual = 0;
             $rootScope.impProdStatus = "Importando Produtos aguarde.";
             for (var i = 0; i <= data.length-1; i++) {
-              $scope.saveProduct(data[i]);
+              $scope.saveProduct(data[i], result.IMG_IMP);
             };
 
           })
@@ -229,17 +229,17 @@ angular.module('app.controllers', [])
       });
     }
 
-    $scope.saveProduct = function (data) {
+    $scope.saveProduct = function (data, impIMG) {
+      console.log(data);
       var img1 = data.image1;
-      productFactory.insert(data.product_id, data.name, data.sku, data.image1, data.image2, data.price, data.stock, data.group_price).then(function(result) {
+      productFactory.insert(data.product_id, data.name, data.cod_barra, data.sku, data.image1, data.image2, data.price, data.stock, data.group_price).then(function(result) {
 
-        if(result.IMG_IMP == "true"){
+        if(impIMG == "true"){
           $scope.getSaveImagesProduct(img1, result+"/1");
         }else{
           $rootScope.impProdAtual += 1;
           if($rootScope.impProdAtual >= $rootScope.impProdTot){
-            $rootScope.impProdStatus = "";
-            //$rootScope.showInterface = true;
+            $rootScope.impProdAtual = 0;
           }
         }
       });
@@ -287,23 +287,47 @@ angular.module('app.controllers', [])
                     prodOrder.push( resultOrderItem[x] );
                   }
 
-                  var params = {
-                      WS_URL: result.WS_URL, 
-                      WS_USER: result.WS_LOGIN,
-                      WS_PASSWORD: result.WS_PASS,
-                      FEIRA: '1',
-                      STORE_ID: result.STORE_ID,
-                      PAYMENT: OrderAt.PAYMENT_METHOD,
-                      SHIPPING: OrderAt.SHIPP_METHOD,
-                      ADDRESS: OrderAt.CUSTOMER_ADDRESS_ID,
-                      CUSTOMER: resultCustomer,
-                      PRODUCT: prodOrder
-                  };
+                  if( resultCustomer.ID_CUSTOMER <= 0 ){
+                    console.log(resultCustomer);
+                    customerAddressFactory.select(resultCustomer.ID).then(function(resultCAddress) {
+                      var params = {
+                          WS_URL: result.WS_URL, 
+                          WS_USER: result.WS_LOGIN,
+                          WS_PASSWORD: result.WS_PASS,
+                          FEIRA: '1',
+                          STORE_ID: result.STORE_ID,
+                          PAYMENT: OrderAt.PAYMENT_METHOD,
+                          SHIPPING: OrderAt.SHIPP_METHOD,
+                          ADDRESS: resultCAddress,
+                          CUSTOMER: resultCustomer,
+                          PRODUCT: prodOrder
+                      };   
+console.log( JSON.stringify(params)  );
+                      $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
+                        salesOrderFactory.checkOrder(OrderAt.ID);
+                        console.log( res.data );
+                      }); 
+                    });
+                  }else{
+                    var params = {
+                        WS_URL: result.WS_URL, 
+                        WS_USER: result.WS_LOGIN,
+                        WS_PASSWORD: result.WS_PASS,
+                        FEIRA: '1',
+                        STORE_ID: result.STORE_ID,
+                        PAYMENT: OrderAt.PAYMENT_METHOD,
+                        SHIPPING: OrderAt.SHIPP_METHOD,
+                        ADDRESS_ID: OrderAt.CUSTOMER_ADDRESS_ID,
+                        CUSTOMER: resultCustomer,
+                        PRODUCT: prodOrder
+                    };   
+console.log( JSON.stringify(params) );
+                    $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
+                      salesOrderFactory.checkOrder(OrderAt.ID);
+                      console.log( res.data );
+                    });                 
+                  }
 
-                  $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
-                    salesOrderFactory.checkOrder(OrderAt.ID);
-                    console.log( res.data );
-                  });
                 });
               });
             };
@@ -316,7 +340,7 @@ angular.module('app.controllers', [])
 
     $scope.processOneCustomer = function(data, address) {
       $rootScope.addreeIns = address;
-      customerFactory.insert(data.customer_id, data.group_id, data.firstname, data.lastname, data.email, data.taxvat, address);
+      customerFactory.insert(data.customer_id, data.group_id, data.firstname, data.lastname, data.email, data.taxvat, address, '');
     }
 
     $scope.getAllCustomersPHP = function() {
@@ -339,6 +363,31 @@ angular.module('app.controllers', [])
               for (var i = 0; i <= data.length-1; i++) {
                 var address = data[i].address;
                 $scope.processOneCustomer(data[i], data[i].address);
+              };
+              $scope.getAllCustomerGroupsPHP();
+            })
+            .error(function (data, status, headers, config) {
+              console.log('data error');
+            })
+            .then(function (result) {
+              things = result.data;
+            });
+        });
+    }
+
+    $scope.getAllCustomerGroupsPHP = function() {
+        configurationFactory.select().then(function(result) {
+          var params = 'WS_URL='+result.WS_URL+'&WS_USER='+result.WS_LOGIN+'&WS_PASSWORD='+result.WS_PASS;
+         
+          $http.get(URLPHPCTRL + '/customer_group.php?'+ params )
+            .success(function (data, status, headers, config) {
+              customerGroupFactory.deleteAll();
+
+              for (var i = 0; i <= data.length-1; i++) {
+                var address = data[i].address;
+                customerGroupFactory.insert(data[i].customer_group_id, data[i].customer_group_code).then(function(result) {
+                console.log('aaa');
+                });
               };
 
             })
@@ -387,7 +436,6 @@ angular.module('app.controllers', [])
     $scope.PaymentMethod.value = null;
 
     $scope.searchBarCode = function(sku) {
-      console.log($rootScope.customer[0]);
       productFactory.select(sku, $rootScope.customer[0].GROUP_ID).then(function(result) {
         $scope.currentItem = result;
         $scope.qtyProd = 1;
@@ -405,7 +453,9 @@ angular.module('app.controllers', [])
       var itemEx = false;
       $rootScope.totCar = 0;
       for(i = 0; i < $rootScope.cartItens.length; i++) { 
-        if($rootScope.cartItens[i].ID == $scope.currentItem.ID){
+        if($rootScope.cartItens[i].PRODUCT_ID == $scope.currentItem.PRODUCT_ID){
+          console.log( $rootScope.cartItens[i].PRODUCT_ID );
+          console.log( $scope.currentItem.PRODUCT_ID );
           uptQTY = Number($rootScope.cartItens[i].QTY)+Number($scope.qtyProd);
           if( $rootScope.cartItens[i].STOCK >= uptQTY ){
             $rootScope.cartItens[i].QTY = uptQTY;
@@ -473,7 +523,7 @@ angular.module('app.controllers', [])
     }
 
     $scope.placeOrder = function() {
-      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.customer[0].FIRSTNAME, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.ctrlArray[$rootScope.PaymentMethod.ID], $rootScope.PaymentMethod.ID, $rootScope.totCar, 'N').then(function(result){
+      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.customer[0].FIRSTNAME, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.PaymentMethod.value.MTP_DESC, $rootScope.PaymentMethod.value.ID, $rootScope.totCar, 'N').then(function(result){
         for (var i = 0; i <= $rootScope.cartItens.length - 1; i++) {
           salesOrderItemFactory.insert(result, $rootScope.cartItens[i].PRODUCT_ID, $rootScope.cartItens[i].SKU, $rootScope.cartItens[i].PRICE, $rootScope.cartItens[i].NAME, $rootScope.cartItens[i].QTY);
         };
@@ -537,6 +587,7 @@ angular.module('app.controllers', [])
     });
 
     $scope.setPayMethod = function(metd) {
+      console.log(metd);
       $rootScope.PaymentMethod = metd;
       $scope.modalMethods.hide();
       $scope.placeOrder();
@@ -544,14 +595,18 @@ angular.module('app.controllers', [])
 
 })
 
-.controller('clienteCtrl', function($scope, $rootScope, customerFactory, customerAddressFactory) {
+.controller('clienteCtrl', function($scope, $rootScope, $ionicModal, customerFactory, customerAddressFactory, customerGroupFactory) {
     $rootScope.customer = [];
     $rootScope.addressCustomer = [];
     $scope.currentItem = null;
+    $rootScope.customerDocument = "";
+
+    $rootScope.insCustomer = [];
 
     $scope.searchCustomer = function(email) {
       customerFactory.select(email).then(function(result) {
         $rootScope.customer = [];
+        $rootScope.addressCustomer = [];
         $scope.currentItem = result;
 
         if( result != null ){
@@ -564,8 +619,46 @@ angular.module('app.controllers', [])
         }
 
       });
-
     };
+
+    $ionicModal.fromTemplateUrl('cadastro.html', {
+      scope: $scope,
+      animation: 'slide-in-up'
+    }).then(function(modal) {
+      $scope.modalCadastro = modal;
+    });
+
+    $scope.showInsertCustomerMenu = function() {
+      customerGroupFactory.select().then(function(result){
+        $rootScope.groupscustomer = result;
+        $rootScope.tipoPess = [{id:'pf', desc:'Pessoa Fisica'}, {id:'pj', desc:'Pessoa Juridica'}]
+
+        $rootScope.ctrlArray = [];
+        for (var i = 0; i <= result.length-1; i++) {
+          $rootScope.ctrlArray[ result[i].MTP_ID ] = result[i].MTP_DESC;
+        };
+
+        $scope.modalCadastro.show();
+      });
+    }
+
+    $scope.insertCustomer = function(insCustomer) {
+      if( insCustomer.CustomerTipPess.value.id == 'pf' ){
+        insCustomer.taxvat = insCustomer.cpf;
+      }else{
+        insCustomer.taxvat = insCustomer.cnpj;
+      }
+
+      customerFactory.insertSingle('-1', insCustomer.CustomerGroup.value.GROUP_ID, insCustomer.firstname, insCustomer.lastname, insCustomer.email, insCustomer.taxvat, '-1', insCustomer.CustomerTipPess.value.id).then(function(result) {
+        customerAddressFactory.insertComp(result, insCustomer.street, insCustomer.region, insCustomer.number, insCustomer.comment, insCustomer.neighborhood, insCustomer.city, insCustomer.cep, insCustomer.tel).then(function(result) {
+          alert('Cliente inserido com sucesso.');
+        });
+      });
+
+      $rootScope.customerDocument = insCustomer.taxvat;
+      $scope.searchCustomer($rootScope.customerDocument);
+      $scope.modalCadastro.hide();
+    }
 
 })
 
@@ -574,13 +667,14 @@ angular.module('app.controllers', [])
     $scope.barcodeNumber = "";
     $scope.scanBarcode = function() {
       console.log($rootScope.conn.BARCODE);
-        if( $rootScope.conn.BARCODE == "Barcode Default" ){
+        //if( $rootScope.conn.BARCODE == "Barcode Default" ){
           $cordovaBarcodeScanner.scan().then(function(imageData) {
               $scope.barcodeNumber = imageData.text;
           }, function(error) {
               console.log(error);
           });
-        }else{
+        //}else{
+          /*
           $rootScope.showBarCodeRTC = true;
           
           ionic.Platform.ready(function(){
@@ -599,7 +693,8 @@ angular.module('app.controllers', [])
             });
 
           });
-        }
+          */
+        //}
 
     };
 

@@ -13,5 +13,92 @@
                 <ion-item>{{ x.STREET }} - {{ x.REGION }}</ion-item>
             </ion-list>
         </div>
+        <button ng-click="showInsertCustomerMenu()" class=" button button-balanced  button-block ">CADASTRAR</button>
     </ion-content>
 </ion-view>
+
+<script id="cadastro.html" type="text/ng-template">
+   <ion-modal-view>
+      <ion-header-bar>
+       <h1 class="title">Cadastrar Cliente</h1>
+      </ion-header-bar>
+      <ion-content>
+        <ion-item>
+            <label class = "item item-input item-select">
+                <div class = "input-label">
+                    Tp Pess.
+                </div>
+                <select ng-model="insCustomer.CustomerTipPess.value" ng-options="item.desc for item in tipoPess">
+                 <option value="">Tipo Pessoa</option>
+                </select>
+            </label>
+            <label class = "item item-input item-select">
+                <div class = "input-label">
+                    Grp de Cli.
+                </div>
+                <select ng-model="insCustomer.CustomerGroup.value" ng-options="item.CODE for item in groupscustomer">
+                 <option value="">Escolha um grupo</option>
+                </select>
+            </label> 
+            <div ng-show="insCustomer.CustomerTipPess.value.id == 'pf'" >
+                <label class="item item-input " id="cpf">
+                    <input type="text" ng-model="insCustomer.cpf" placeholder="Insira o CPF"></input>
+                </label>
+            </div>
+            <div ng-show="insCustomer.CustomerTipPess.value.id == 'pj'" >
+                <label class="item item-input " id="cnpj">
+                    <input type="text" ng-model="insCustomer.cnpj" placeholder="Insira o CNPJ"></input>
+                </label>
+            </div>
+            <label class="item item-input " id="email">
+                <input type="text" ng-model="insCustomer.email" placeholder="Insira o Email"></input>
+            </label>
+            <label class="item item-input " id="firstname">
+                <input type="text" ng-model="insCustomer.firstname" placeholder="Insira o Primeiro Nome"></input>
+            </label>
+            <label class="item item-input " id="lastname">
+                <input type="text" ng-model="insCustomer.lastname" placeholder="Insira o Segundo Nome"></input>
+            </label>
+            <label class="item item-input " id="tel">
+                <input type="text" ng-model="insCustomer.tel" placeholder="Insira o Telefone"></input>
+            </label>
+        </ion-item>
+
+        <ion-item>
+            <label class="item item-input " id="cep">
+                <input type="text" ng-model="insCustomer.cep" placeholder="Insira o Cep"></input>
+            </label>
+
+            <label class="item item-input " id="city">
+                <input type="text" ng-model="insCustomer.city" placeholder="Insira a Cidade"></input>
+            </label>
+
+            <label class="item item-input " id="region">
+                <input type="text" ng-model="insCustomer.region" placeholder="Insira o Estado"></input>
+            </label>
+
+            <label class="item item-input " id="street">
+                <input type="text" ng-model="insCustomer.street" placeholder="Insira a Rua"></input>
+            </label>    
+
+            <label class="item item-input " id="number">
+                <input type="text" ng-model="insCustomer.number" placeholder="Insira a Numero"></input>
+            </label> 
+
+            <label class="item item-input " id="comment">
+                <input type="text" ng-model="insCustomer.comment" placeholder="Insira o Complemento"></input>
+            </label>
+
+            <label class="item item-input " id="neighborhood">
+                <input type="text" ng-model="insCustomer.neighborhood" placeholder="Insira o Bairro"></input>
+            </label> 
+
+        </ion-item>
+
+        <ion-item>
+            <button ng-click="insertCustomer(insCustomer)" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">CONFIRMAR</button>
+                <button ng-click="modalCadastro.hide()" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">Cancelar</button>
+        </ion-item>
+      </ion-content>
+    </ion-modal-view>
+</script>

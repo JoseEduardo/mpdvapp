@@ -11,7 +11,8 @@ class ZTSoftware_MagePDV_Model_Api extends Mage_Api_Model_Resource_Abstract
 
         		$retArrayTmp = array(
 		                "product_id" => $product->getId(),
-		                "sku" => $product->getData('codigobarra'), //$product->getSku(),
+		                "sku" => $product->getSku(),
+		                "cod_barra" => $product->getData('codigobarra'),
 		                "name" => $product->getName(),
 		                "price" => $product->getPrice(),
 		                "stock" => $product->getStockItem()->getQty(),
@@ -45,7 +46,7 @@ class ZTSoftware_MagePDV_Model_Api extends Mage_Api_Model_Resource_Abstract
 	                    "customer_address_id" => $customerAddressId
 					);
 
-				$taxvat = ($customer->getData('tipopessoa') == 'pj') ? $customer->getData('cnpj') : $customer->getData('Cpf');
+				$taxvat = ($customer->getData('tipopessoa') == 'pj') ? $customer->getData('cnpj') : $customer->getData('cpf');
 		    	$retArrayTmp = array(
 			            "firstname" => $customer->getFirstname(),
 			            "lastname" => $customer->getLastname(),
@@ -60,5 +61,67 @@ class ZTSoftware_MagePDV_Model_Api extends Mage_Api_Model_Resource_Abstract
 		    }
 
     		return $result;
+        }
+        public function customerinfo($data){
+			$customer = Mage::getModel('customer/customer')
+            ->getCollection()
+            ->addAttributeToSelect('*')
+            ->addAttributeToFilter('email', $data['email'] )
+            ->getFirstItem();
+
+            if( $customer->getId() == null ){
+				$customer = Mage::getModel("customer/customer");
+				$customer   ->setWebsiteId(Mage::getModel('core/store')->load($data['store_id'])->getWebsiteId())
+				            ->setStoreId($data['store_id'])
+				            ->setFirstname($data['firstname'])
+				            ->setLastname($data['lastname'])
+				            ->setEmail($data['email'])
+				            ->setGroupId($data['group_id'])
+				            ->setPassword('999999');
+
+				$customer->setData('tipopessoa', $data['type_pess']);
+				if(	$data['type_pess'] == 'pf' ){
+					$customer->setData('cpf', $data['cpf']);
+				}else{
+					$customer->setData('cnpj', $data['cnpj']);
+				}
+
+				$customer->save();
+
+				$_custom_address = array (
+				    'firstname' => $data['firstname'],
+				    'lastname' => $data['lastname'],
+				    'street' => array (
+				        '0' => $data['street'],
+				        '1' => $data['number'],
+						'2' => $data['comment'],
+				        '3' => $data['neighborhood'],
+				    ),
+				    'city' => $data['city'],
+				    'region_id' => '',
+				    'region' => $data['region'],
+				    'postcode' => $data['cep'],
+				    'country_id' => 'BR',
+				    'telephone' => $data['tel']
+				);
+				$customAddress = Mage::getModel('customer/address');
+				$customAddress->setData($_custom_address)
+				            ->setCustomerId($customer->getData('entity_id'))
+				            ->setIsDefaultBilling('1')
+				            ->setIsDefaultShipping('1')
+				            ->setSaveInAddressBook('1');
+
+				$customAddress->save();
+
+				return array('ID' => $customer->getData('entity_id'), 'ADDRESS_ID' => $customAddress->getData('entity_id') );
+            }else{
+            	$customer = Mage::getModel('customer/customer')->load($customer->getId());
+            	return array('ID' => $customer->getId(), 'ADDRESS_ID' => $customer->getData('default_shipping') );
+            }
+        }
+        public function customergrouplist(){
+			$customerGroup = Mage::getModel('customer/group')->getCollection();
+
+			return $customerGroup->getData();
         }
 }

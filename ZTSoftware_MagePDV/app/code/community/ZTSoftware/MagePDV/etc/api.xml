@@ -15,6 +15,14 @@
 							<title>get All Customers</title>
 							<acl>magepdv/customerlist</acl>
 						</customerlist>
+                        <customergrouplist translate="title" module="magepdv">
+                            <title>get All Customers Group</title>
+                            <acl>magepdv/customergrouplist</acl>
+                        </customergrouplist>
+                        <customerinfo translate="title" module="magepdv">
+                            <title>get Customer Info</title>
+                            <acl>magepdv/customerinfo</acl>
+                        </customerinfo>
                 </methods>
             </magepdv_api>
         </resources>
@@ -29,6 +37,12 @@
 					<customerlist translate="title" module="magepdv">
                         <title>get All Customers</title>
                     </customerlist>
+                    <customergrouplist translate="title" module="magepdv">
+                        <title>get All Customers Group</title>
+                    </customergrouplist>
+                    <customerinfo translate="title" module="magepdv">
+                        <title>get Customer Info</title>
+                    </customerinfo>
                 </magepdv>
             </resources>
         </acl>
