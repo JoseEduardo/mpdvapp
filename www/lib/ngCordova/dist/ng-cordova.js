@@ -6647,6 +6647,24 @@ angular.module('ngCordova.plugins.sqlite', [])
         return q.promise;
       },
 
+//alterado por JOSE EDUARDO
+      manyExecute: function (db, query) {
+        var q = $q.defer();
+
+        db.transaction(function (tx) {
+            for (var i = 0; i < query.length; i++) {
+              tx.executeSql(query[i], []);
+            };
+          },
+          function (transaction, error) {
+            q.reject(error);
+          }, function() {
+            q.resolve("OK");
+          });
+
+        return q.promise;
+      },
+
       deleteDB: function (dbName) {
         var q = $q.defer();
 

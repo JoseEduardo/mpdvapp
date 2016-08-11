@@ -42,12 +42,12 @@
             </label> 
             <div ng-show="insCustomer.CustomerTipPess.value.id == 'pf'" >
                 <label class="item item-input " id="cpf">
-                    <input type="text" ng-model="insCustomer.cpf" placeholder="Insira o CPF"></input>
+                    <input type="text" ng-model="insCustomer.cpf" ng-change="checkCustomer(insCustomer.cpf)" placeholder="Insira o CPF"></input>
                 </label>
             </div>
             <div ng-show="insCustomer.CustomerTipPess.value.id == 'pj'" >
                 <label class="item item-input " id="cnpj">
-                    <input type="text" ng-model="insCustomer.cnpj" placeholder="Insira o CNPJ"></input>
+                    <input type="text" ng-model="insCustomer.cnpj" ng-change="checkCustomer(insCustomer.cpf)" placeholder="Insira o CNPJ"></input>
                 </label>
             </div>
             <label class="item item-input " id="email">
@@ -66,7 +66,7 @@
 
         <ion-item>
             <label class="item item-input " id="cep">
-                <input type="text" ng-model="insCustomer.cep" placeholder="Insira o Cep"></input>
+                <input type="text" ng-blur="getCEP(insCustomer.cep)" ng-model="insCustomer.cep" placeholder="Insira o Cep"></input>
             </label>
 
             <label class="item item-input " id="city">
@@ -96,8 +96,11 @@
         </ion-item>
 
         <ion-item>
-            <button ng-click="insertCustomer(insCustomer)" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">CONFIRMAR</button>
-                <button ng-click="modalCadastro.hide()" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">Cancelar</button>
+            <div ng-show="taxIsUsed">
+                CPF/CNPJ em uso.
+            </div>
+            <button ng-disabled="taxIsUsed" ng-click="insertCustomer(insCustomer)" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">CONFIRMAR</button>
+            <button ng-click="modalCadastro.hide()" style="width:49% !important; display:inline;" class=" button button-assertive  button-block ">Cancelar</button>
         </ion-item>
       </ion-content>
     </ion-modal-view>

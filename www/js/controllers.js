@@ -52,7 +52,7 @@ angular.module('app.controllers', [])
   //http://magepdv-shaykie.rhcloud.com/products.php?WS_URL=http://magento.db1.com.br/magento_hom/index.php&WS_USER=anymarket&WS_PASSWORD=anymarket&PORC_STOCK=100
     $rootScope.showInterface = true; 
     $rootScope.conn = [];
-    $scope.countProd = 0;
+    $rootScope.countProd = 0;
 
     $rootScope.impCustomerTot = 0;
     $rootScope.impCustomerAtual = 0;
@@ -137,7 +137,7 @@ angular.module('app.controllers', [])
       ionic.Platform.ready(function(){
         $scope.loadConfiguration();
         productFactory.count().then(function(result) {
-          $scope.countProd = result.TOTPROD;
+          $rootScope.countProd = result.TOTPROD;
         });
       });
     }
@@ -230,19 +230,12 @@ angular.module('app.controllers', [])
     }
 
     $scope.saveProduct = function (data, impIMG) {
-      console.log(data);
       var img1 = data.image1;
-      productFactory.insert(data.product_id, data.name, data.cod_barra, data.sku, data.image1, data.image2, data.price, data.stock, data.group_price).then(function(result) {
+      productFactory.insert(data.product_id, data.name, data.cod_barra, data.sku, data.image1, data.image2, data.price, data.stock, data.group_price);
 
-        if(impIMG == "true"){
-          $scope.getSaveImagesProduct(img1, result+"/1");
-        }else{
-          $rootScope.impProdAtual += 1;
-          if($rootScope.impProdAtual >= $rootScope.impProdTot){
-            $rootScope.impProdAtual = 0;
-          }
-        }
-      });
+      if(impIMG == "true"){
+        $scope.getSaveImagesProduct(img1, data.product_id+"/1");
+      }
     }
 
     $scope.getSaveImagesProduct = function (url, name) {
@@ -442,7 +435,7 @@ console.log( JSON.stringify(params) );
         $scope.noStock = false;
 
         if(result){
-          $scope.getImageOfProduct(result.ID);
+          $scope.getImageOfProduct(result.PRODUCT_ID);
         }else{
           $scope.imageProd1 = null;
         }
@@ -595,11 +588,12 @@ console.log( JSON.stringify(params) );
 
 })
 
-.controller('clienteCtrl', function($scope, $rootScope, $ionicModal, customerFactory, customerAddressFactory, customerGroupFactory) {
+.controller('clienteCtrl', function($scope, $rootScope, $ionicModal, $cordovaNetwork, customerFactory, customerAddressFactory, customerGroupFactory) {
     $rootScope.customer = [];
     $rootScope.addressCustomer = [];
     $scope.currentItem = null;
     $rootScope.customerDocument = "";
+    $scope.taxIsUsed = false;
 
     $rootScope.insCustomer = [];
 
@@ -619,6 +613,20 @@ console.log( JSON.stringify(params) );
         }
 
       });
+    };
+
+    $scope.getCEP = function(CEP) {
+      if( $cordovaNetwork.isOnline() && CEP != "" ){
+        console.log(CEP);
+          $.getScript("http://cep.republicavirtual.com.br/web_cep.php?formato=javascript&cep="+CEP, function(){
+              if(resultadoCEP["resultado"]){
+                  $rootScope.insCustomer.neighborhood = unescape(resultadoCEP["tipo_logradouro"])+": "+unescape(resultadoCEP["logradouro"]);
+                  $rootScope.insCustomer.neighborhood = unescape(resultadoCEP["bairro"]);
+                  $rootScope.insCustomer.neighborhood = unescape(resultadoCEP["cidade"]);
+                  $rootScope.insCustomer.neighborhood = unescape(resultadoCEP["uf"]);
+              }
+          }); 
+      }
     };
 
     $ionicModal.fromTemplateUrl('cadastro.html', {
@@ -642,6 +650,17 @@ console.log( JSON.stringify(params) );
       });
     }
 
+    $scope.checkCustomer = function() {
+      customerFactory.selectByTax().then(function(result){
+        console.log(result);
+        if(result){
+          $scope.taxIsUsed = true;
+        }else{
+          $scope.taxIsUsed = false;
+        }
+      });
+    }
+
     $scope.insertCustomer = function(insCustomer) {
       if( insCustomer.CustomerTipPess.value.id == 'pf' ){
         insCustomer.taxvat = insCustomer.cpf;
@@ -652,6 +671,9 @@ console.log( JSON.stringify(params) );
       customerFactory.insertSingle('-1', insCustomer.CustomerGroup.value.GROUP_ID, insCustomer.firstname, insCustomer.lastname, insCustomer.email, insCustomer.taxvat, '-1', insCustomer.CustomerTipPess.value.id).then(function(result) {
         customerAddressFactory.insertComp(result, insCustomer.street, insCustomer.region, insCustomer.number, insCustomer.comment, insCustomer.neighborhood, insCustomer.city, insCustomer.cep, insCustomer.tel).then(function(result) {
           alert('Cliente inserido com sucesso.');
+          $scope.insCustomer = [];
+          $rootScope.insCustomer = [];
+          insCustomer = [];
         });
       });
 

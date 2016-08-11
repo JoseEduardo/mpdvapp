@@ -17,9 +17,6 @@ sqlite.run(function($ionicPlatform, $cordovaSQLite) {
 //    $cordovaSQLite.execute(db, "DROP TABLE LOGIN");
 //    $cordovaSQLite.execute(db, "DROP TABLE SALESORDER");
 
-
-
-
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS PRODUCT (ID integer primary key, PRODUCT_ID integer, COD_BARRA varchar(250), NAME varchar(250), IMG_1 varchar(250), IMG_2 varchar(250), SKU varchar(30), PRICE real, STOCK real)");
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS PRODUCT_PRICE (ID integer primary key, PRODUCT_ID integer, GROUP_ID integer, PRICE real)");
 
@@ -78,47 +75,30 @@ sqlite.factory('configurationFactory', function($cordovaSQLite) {
 sqlite.factory('productFactory', function($cordovaSQLite, $rootScope) {
   return {
     insert : function(productID, name, cod_barra, sku, img1, img2, price, stock, group_price){
-	    $rootScope.impProdTotPrice = 0;
-      var query = "INSERT INTO PRODUCT (PRODUCT_ID, NAME, COD_BARRA, SKU, IMG_1, IMG_2, PRICE, STOCK) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
-	  	var values = [productID, name, cod_barra, sku, img1, img2, price, stock];
-      console.log(values);
+      var arrayQuery = [];
+      arrayQuery.push("INSERT INTO PRODUCT (PRODUCT_ID, NAME, COD_BARRA, SKU, IMG_1, IMG_2, PRICE, STOCK) VALUES ('"+productID+"', '"+name+"', '"+cod_barra+"', '"+sku+"', '"+img1+"', '"+img2+"', '"+price+"', '"+stock+"');");
+      angular.forEach(group_price, function(value, key) {
+        arrayQuery.push("INSERT INTO PRODUCT_PRICE (PRODUCT_ID, GROUP_ID, PRICE) VALUES ('"+productID+"', '"+key+"', '"+value+"');");
+      });
 
-     	return $cordovaSQLite.execute(db, query, values).then(
-		    function(res) {
-          angular.forEach(group_price, function(value, key) {
-            var queryPrice = "INSERT INTO PRODUCT_PRICE (PRODUCT_ID, GROUP_ID, PRICE) VALUES (?, ?, ?);";
-            var valuesPrice = [productID, key, value];
-            console.log(productID);
-            $rootScope.impProdTotPrice += 1;
-            return $cordovaSQLite.execute(db, queryPrice, valuesPrice).then(
-              function(res) {
-                console.log("Preco importado "+productID);
-                $rootScope.showInterface = false;
-                $rootScope.impProdAtual += 1;
-                $rootScope.impProdStatus = "Importando Preços aguarde.";
-                $rootScope.impProdTot = $rootScope.impProdTotPrice;
+      return $cordovaSQLite.manyExecute(db, arrayQuery).then(
+        function(res) {
+          console.log(res);
+          $rootScope.impProdAtual += 1;
+          if($rootScope.impProdAtual >= $rootScope.impProdTot){
+            $rootScope.showInterface = true;
+            $rootScope.impProdStatus = "";
+            $rootScope.impProdAtual = 0;
+            $rootScope.impProdTot = "";
 
-                if($rootScope.impProdAtual >= $rootScope.impProdTotPrice){
-                  console.log($rootScope.impProdAtual);
-                  console.log($rootScope.impProdTot);
-                  $rootScope.showInterface = true;
-                  $rootScope.impProdStatus = "";
-                  $rootScope.impProdAtual = 0;
-                  $rootScope.impProdTot = "";
-                }
-              },
-              function(err) {
-                console.log(err);
-              }
-            );
-          });
+            $rootScope.countProd = $rootScope.impProdTot;
+          }
+        },
+        function(err) {
+          console.log(err);
+        }
+      );
 
-		      return res.insertId;
-		    },
-		    function(err) {
-		      console.log(err);
-		    }
-	 	);
     },
     select : function(sku, id_groupd_customer){
     	var query = "SELECT PRD.PRODUCT_ID, PRD.NAME, PRD.IMG_1, PRD.IMG_2, PRD.COD_BARRA, PRP.PRICE, PRD.STOCK, PRD.SKU FROM PRODUCT PRD LEFT JOIN PRODUCT_PRICE PRP ON PRD.PRODUCT_ID = PRP.PRODUCT_ID WHERE PRD.SKU LIKE '%"+sku+"' AND PRP.GROUP_ID = '"+id_groupd_customer+"'";
@@ -296,13 +276,25 @@ sqlite.factory('customerFactory', function($cordovaSQLite, $rootScope, customerA
         }
       );
     },
+    selectByTax : function(searchData){
+      var query = "SELECT * FROM CUSTOMER WHERE TAXVAT = '"+searchData+"'"; 
+
+      return $cordovaSQLite.execute(db, query).then(
+        function(res) {
+          if (res.rows.length > 0) {
+            return res.rows.item(0);
+          } else {
+            return null;
+          }
+        }
+      );
+    },
     select : function(searchData){
       if(searchData == null){
         var query = "SELECT * FROM CUSTOMER"; 
       }else{
         var query = "SELECT * FROM CUSTOMER WHERE EMAIL = '"+searchData+"' OR TAXVAT = '"+searchData+"'"; 
       }
-console.log(searchData);
       return $cordovaSQLite.execute(db, query).then(
         function(res) {
           if (res.rows.length > 0) {
