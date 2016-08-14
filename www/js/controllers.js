@@ -4,51 +4,7 @@ angular.module('app.controllers', [])
 
 })
 
-.controller('printCtrl', function($scope, $rootScope, $cordovaPrinter, salesOrderFactory, customerFactory, salesOrderItemFactory ) {
-    $rootScope.print = function(orderToPrint) {
-      $rootScope.orderPrint = [];
-
-      document.addEventListener('deviceready', function () {
-        salesOrderFactory.select(orderToPrint.ID).then(function(resultOrder) {
-          for (var i = 0; i <= resultOrder.length-1; i++) {
-            var OrderAt = resultOrder[i];
-            customerFactory.selectById(resultOrder[i].CUSTOMER_ID).then(function(resultCustomer) {
-              salesOrderItemFactory.select(OrderAt.ID).then(function(resultOrderItem) {
-                var prodOrder = [];
-                for (var x = 0; x <= resultOrderItem.length-1; x++) {
-                  prodOrder.push( resultOrderItem[x] );  
-                }
-
-                $rootScope.orderPrint.customer = resultCustomer.FIRSTNAME;
-                $rootScope.orderPrint.tot = OrderAt.TOT_VLR;
-                $rootScope.orderPrint.payMet = OrderAt.PAYMENT_METHOD;
-                $rootScope.orderPrint.items = prodOrder;
- 
-                cordova.plugins.printer.isAvailable(
-                  function (isAvailable, installedAppIds) {
-                      if (isAvailable) {
-                        var page = document.getElementById('repForPrint');
-                        cordova.plugins.printer.print(page, 'Document.html', function () {
-
-                        });
-                      }else{
-                        alert('Impressora não disponivel');
-                      }
-                  }
-                );
-
-              });
-            });
-          };
-        });
-      
-      }, false);
-
-    }
-
-})
-
-.controller('APICtrl', function($scope, $http, $rootScope, $cordovaFileTransfer, $cordovaDevice, productFactory, configurationFactory, customerFactory, customerAddressFactory, salesOrderFactory, salesOrderItemFactory, loginFactory, metPagFactory, customerGroupFactory) {
+.controller('APICtrl', function($scope, $q, $http, $rootScope, $cordovaFileTransfer, $cordovaDevice, productFactory, configurationFactory, customerFactory, customerAddressFactory, salesOrderFactory, salesOrderItemFactory, loginFactory, metPagFactory, customerGroupFactory) {
   //http://magepdv-shaykie.rhcloud.com/products.php?WS_URL=http://magento.db1.com.br/magento_hom/index.php&WS_USER=anymarket&WS_PASSWORD=anymarket&PORC_STOCK=100
     $rootScope.showInterface = true; 
     $rootScope.conn = [];
@@ -70,6 +26,36 @@ angular.module('app.controllers', [])
     $rootScope.conn.STORE_ID = "";
     $rootScope.conn.BARCODE = 1;
     $rootScope.barcodesOpts = ['Barcode Default', 'Barcode Advanced'];
+
+    $rootScope.regionsOpts = [
+      'Acre',
+      'Alagoas',
+      'Amapá',
+      'Amazonas',
+      'Bahia',
+      'Ceará',
+      'Distrito Federal',
+      'Espírito Santo',
+      'Goiás',
+      'Maranhão',
+      'Mato Grosso',
+      'Mato Grosso do Sul',
+      'Minas Gerais',
+      'Pará',
+      'Paraíba',
+      'Paraná',
+      'Pernambuco',
+      'Piauí',
+      'Rio de Janeiro',
+      'Rio Grande do Norte',
+      'Rio Grande do Sul',
+      'Rondônia',
+      'Roraima',
+      'Santa Catarina',
+      'São Paulo',
+      'Sergipe',
+      'Tocantins'
+    ];
 
     var URLPHPCTRL = 'http://magepdv-shaykie.rhcloud.com';
 
@@ -142,7 +128,7 @@ angular.module('app.controllers', [])
       });
     }
 
-    $scope.getAllOrders = function() {
+    $rootScope.getAllOrders = function() {
       ionic.Platform.ready(function(){
         $scope.loadConfiguration();
         salesOrderFactory.count().then(function(result) {
@@ -266,63 +252,70 @@ angular.module('app.controllers', [])
       });
     }
 
+    $rootScope.exportSpecificOrder = function(result, OrderAt) {
+
+      var deferred = $q.defer();
+      customerFactory.selectById(OrderAt.CUSTOMER_ID).then(function(resultCustomer) {
+        salesOrderItemFactory.select(OrderAt.ID).then(function(resultOrderItem) {
+          var prodOrder = [];
+          for (var x = 0; x <= resultOrderItem.length-1; x++) {
+            prodOrder.push( resultOrderItem[x] );
+          }
+
+          if( resultCustomer.ID_CUSTOMER <= 0 ){
+            console.log(resultCustomer);
+            customerAddressFactory.select(resultCustomer.ID).then(function(resultCAddress) {
+              var params = {
+                  WS_URL: result.WS_URL, 
+                  WS_USER: result.WS_LOGIN,
+                  WS_PASSWORD: result.WS_PASS,
+                  FEIRA: '1',
+                  STORE_ID: result.STORE_ID,
+                  PAYMENT: OrderAt.PAYMENT_METHOD,
+                  SHIPPING: OrderAt.SHIPP_METHOD,
+                  ADDRESS: resultCAddress,
+                  CUSTOMER: resultCustomer,
+                  PRODUCT: prodOrder
+              };   
+              console.log( JSON.stringify(params)  );
+              $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
+                salesOrderFactory.checkOrder(OrderAt.ID);
+                console.log( res.data );
+              }); 
+            });
+          }else{
+            var params = {
+                WS_URL: result.WS_URL, 
+                WS_USER: result.WS_LOGIN,
+                WS_PASSWORD: result.WS_PASS,
+                FEIRA: '1',
+                STORE_ID: result.STORE_ID,
+                PAYMENT: OrderAt.PAYMENT_METHOD,
+                SHIPPING: OrderAt.SHIPP_METHOD,
+                ADDRESS_ID: OrderAt.CUSTOMER_ADDRESS_ID,
+                CUSTOMER: resultCustomer,
+                PRODUCT: prodOrder
+            };   
+            console.log(OrderAt);
+            console.log( JSON.stringify(params) );
+            $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
+              salesOrderFactory.checkOrder(OrderAt.ID);
+              console.log( res.data );
+            });                 
+          }
+          deferred.resolve();
+        });
+      });
+      return deferred.promise;
+    };
 
     $scope.doCreateOrderPHP = function() {
       configurationFactory.select().then(function(result) {
+
         salesOrderFactory.selectOnlyUnprocessed().then(function(resultOrder) {
           if(resultOrder){
             for (var i = 0; i <= resultOrder.length-1; i++) {
-              var OrderAt = resultOrder[i];
-              customerFactory.selectById(resultOrder[i].CUSTOMER_ID).then(function(resultCustomer) {
-                salesOrderItemFactory.select(OrderAt.ID).then(function(resultOrderItem) {
-                  var prodOrder = [];
-                  for (var x = 0; x <= resultOrderItem.length-1; x++) {
-                    prodOrder.push( resultOrderItem[x] );
-                  }
-
-                  if( resultCustomer.ID_CUSTOMER <= 0 ){
-                    console.log(resultCustomer);
-                    customerAddressFactory.select(resultCustomer.ID).then(function(resultCAddress) {
-                      var params = {
-                          WS_URL: result.WS_URL, 
-                          WS_USER: result.WS_LOGIN,
-                          WS_PASSWORD: result.WS_PASS,
-                          FEIRA: '1',
-                          STORE_ID: result.STORE_ID,
-                          PAYMENT: OrderAt.PAYMENT_METHOD,
-                          SHIPPING: OrderAt.SHIPP_METHOD,
-                          ADDRESS: resultCAddress,
-                          CUSTOMER: resultCustomer,
-                          PRODUCT: prodOrder
-                      };   
-console.log( JSON.stringify(params)  );
-                      $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
-                        salesOrderFactory.checkOrder(OrderAt.ID);
-                        console.log( res.data );
-                      }); 
-                    });
-                  }else{
-                    var params = {
-                        WS_URL: result.WS_URL, 
-                        WS_USER: result.WS_LOGIN,
-                        WS_PASSWORD: result.WS_PASS,
-                        FEIRA: '1',
-                        STORE_ID: result.STORE_ID,
-                        PAYMENT: OrderAt.PAYMENT_METHOD,
-                        SHIPPING: OrderAt.SHIPP_METHOD,
-                        ADDRESS_ID: OrderAt.CUSTOMER_ADDRESS_ID,
-                        CUSTOMER: resultCustomer,
-                        PRODUCT: prodOrder
-                    };   
-console.log( JSON.stringify(params) );
-                    $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
-                      salesOrderFactory.checkOrder(OrderAt.ID);
-                      console.log( res.data );
-                    });                 
-                  }
-
-                });
-              });
+              $rootScope.exportSpecificOrder( result, resultOrder[i] );
             };
           }else{
             alert('Não ha vendas para serem exportadas.');
@@ -419,37 +412,49 @@ console.log( JSON.stringify(params) );
   
 })
 
-.controller('vendaCtrl', function($scope, $rootScope, $ionicModal, $cordovaDevice, $ionicPopup, productFactory, salesOrderFactory, salesOrderItemFactory, metPagFactory) {
+.controller('vendaCtrl', function($scope, $rootScope, $q, $ionicModal, $cordovaDevice, $ionicPopup, productFactory, salesOrderFactory, salesOrderItemFactory, metPagFactory) {
+    /*
     $scope.currentItem = null;
     $rootScope.totCar = 0;
     $rootScope.cartItens = [];
+    */
+
     $scope.noStock = false;
     $scope.imageProd1 = null;
     $scope.PaymentMethod = [];
     $scope.PaymentMethod.value = null;
 
-    $scope.searchBarCode = function(sku) {
+    $rootScope.searchBarCode = function(sku, qty) {
+      $rootScope.currentItem = null;
+      var deferred = $q.defer();
       productFactory.select(sku, $rootScope.customer[0].GROUP_ID).then(function(result) {
-        $scope.currentItem = result;
-        $scope.qtyProd = 1;
+        $rootScope.currentItem = result;
+        console.log($rootScope.currentItem);
+        if(qty){
+          $rootScope.qtyProd = qty;
+        }else{
+          $rootScope.qtyProd = 1;
+        }
+
         $scope.noStock = false;
 
         if(result){
-          $scope.getImageOfProduct(result.PRODUCT_ID);
+          //$scope.getImageOfProduct(result.PRODUCT_ID);
         }else{
           $scope.imageProd1 = null;
         }
+        deferred.resolve();
       });
+      return deferred.promise;
     };
 
-    $scope.addToCart = function() {
+    $rootScope.addToCart = function() {
+      console.log($rootScope.cartItens);
       var itemEx = false;
       $rootScope.totCar = 0;
       for(i = 0; i < $rootScope.cartItens.length; i++) { 
-        if($rootScope.cartItens[i].PRODUCT_ID == $scope.currentItem.PRODUCT_ID){
-          console.log( $rootScope.cartItens[i].PRODUCT_ID );
-          console.log( $scope.currentItem.PRODUCT_ID );
-          uptQTY = Number($rootScope.cartItens[i].QTY)+Number($scope.qtyProd);
+        if($rootScope.cartItens[i].PRODUCT_ID == $rootScope.currentItem.PRODUCT_ID){
+          uptQTY = Number($rootScope.cartItens[i].QTY)+Number($rootScope.qtyProd);
           if( $rootScope.cartItens[i].STOCK >= uptQTY ){
             $rootScope.cartItens[i].QTY = uptQTY;
           }else{
@@ -462,36 +467,41 @@ console.log( JSON.stringify(params) );
       }
 
       if(itemEx == false){
-        $scope.currentItem.QTY = $scope.qtyProd;
-        $rootScope.cartItens.push($scope.currentItem);
+        console.log( $rootScope.currentItem );
+        $rootScope.currentItem.QTY = $rootScope.qtyProd;
+        $rootScope.cartItens.push($rootScope.currentItem);
 
-        $rootScope.totCar += Number($scope.currentItem.QTY)*Number($scope.currentItem.PRICE);
+        $rootScope.totCar += Number($rootScope.currentItem.QTY)*Number($rootScope.currentItem.PRICE);
       }
 
-      $scope.barcodeNumber = null;
-      $scope.currentItem = null;
+      $rootScope.barcodeNumber = null;
+      $rootScope.currentItem = null;
       $scope.imageProd1 = null;
     };    
 
     $scope.removeFromCart = function(item) {
-      $rootScope.totCar = 0;
-      $rootScope.ctrlArray = [];
+      if($rootScope.closedOrder != 'S'){
+        $rootScope.totCar = 0;
+        $rootScope.ctrlArray = [];
 
-      for(i = 0; i < $rootScope.cartItens.length; i++) { 
-        if($rootScope.cartItens[i] == item){
-          $rootScope.cartItens.splice(i, 1);
-        }else{
-          $rootScope.totCar += Number($rootScope.cartItens[i].QTY)*Number($rootScope.cartItens[i].PRICE);
-        }   
+        for(i = 0; i < $rootScope.cartItens.length; i++) { 
+          if($rootScope.cartItens[i] == item){
+            $rootScope.cartItens.splice(i, 1);
+          }else{
+            $rootScope.totCar += Number($rootScope.cartItens[i].QTY)*Number($rootScope.cartItens[i].PRICE);
+          }   
+        }
       }
     }; 
 
     $scope.editQtyCart = function(item) {
-      $scope.modal.show();
-      $scope.edtItem = item.NAME;
-      $rootScope.qtyItemEDT = item.QTY;
+      if($rootScope.closedOrder != 'S'){
+        $scope.modal.show();
+        $scope.edtItem = item.NAME;
+        $rootScope.qtyItemEDT = item.QTY;
 
-      $rootScope.itemForEdit = item;
+        $rootScope.itemForEdit = item;
+      }
     }; 
 
     $scope.loadAllOrders = function (){
@@ -515,12 +525,40 @@ console.log( JSON.stringify(params) );
       });
     }
 
+    $scope.updateOrder = function() {
+      salesOrderItemFactory.deleteOrderID($rootScope.OrderIDLoaded);
+      salesOrderFactory.update($rootScope.OrderIDLoaded, $rootScope.PaymentMethod.value.MTP_DESC, $rootScope.PaymentMethod.value.ID, $rootScope.totCar).then(function(result){
+        for (var i = 0; i <= $rootScope.cartItens.length - 1; i++) {
+          salesOrderItemFactory.insert($rootScope.OrderIDLoaded, $rootScope.cartItens[i].PRODUCT_ID, $rootScope.cartItens[i].SKU, $rootScope.cartItens[i].PRICE, $rootScope.cartItens[i].NAME, $rootScope.cartItens[i].QTY);
+        };
+
+        var alertPopup = $ionicPopup.confirm({
+          title: 'Venda',
+          template: 'Atualizada com sucesso, deseja imprimir?'
+        });
+
+        alertPopup.then(function(res) {
+          if(res) {
+            var objPrint = [];
+            objPrint.ID = result;
+            $rootScope.print(objPrint);
+          }
+        });
+
+        $rootScope.totCar = 0;
+        $rootScope.cartItens = []; 
+      });
+    }; 
+
+
     $scope.placeOrder = function() {
       salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.customer[0].FIRSTNAME, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.PaymentMethod.value.MTP_DESC, $rootScope.PaymentMethod.value.ID, $rootScope.totCar, 'N').then(function(result){
         for (var i = 0; i <= $rootScope.cartItens.length - 1; i++) {
           salesOrderItemFactory.insert(result, $rootScope.cartItens[i].PRODUCT_ID, $rootScope.cartItens[i].SKU, $rootScope.cartItens[i].PRICE, $rootScope.cartItens[i].NAME, $rootScope.cartItens[i].QTY);
         };
 
+        $rootScope.getAllOrders();
+        
         var alertPopup = $ionicPopup.confirm({
           title: 'Venda',
           template: 'Finalizada com sucesso, deseja imprimir?'
@@ -579,11 +617,16 @@ console.log( JSON.stringify(params) );
       $scope.modalMethods = modal;
     });
 
-    $scope.setPayMethod = function(metd) {
+    $scope.setPayMethod = function(metd, type) {
       console.log(metd);
       $rootScope.PaymentMethod = metd;
       $scope.modalMethods.hide();
-      $scope.placeOrder();
+
+      if(type == 'INS'){
+        $scope.placeOrder();
+      }else{
+        $scope.updateOrder();
+      }
     };
 
 })
@@ -597,13 +640,15 @@ console.log( JSON.stringify(params) );
 
     $rootScope.insCustomer = [];
 
-    $scope.searchCustomer = function(email) {
+    $rootScope.searchCustomer = function(email) {
       customerFactory.select(email).then(function(result) {
+        $rootScope.customerDocument = email;
         $rootScope.customer = [];
         $rootScope.addressCustomer = [];
         $scope.currentItem = result;
 
         if( result != null ){
+          $rootScope.cartItens = [];
           $rootScope.customer.push($scope.currentItem);
           customerAddressFactory.select(result['ID']).then(function(result) {
             console.log(result);
@@ -620,10 +665,10 @@ console.log( JSON.stringify(params) );
         console.log(CEP);
           $.getScript("http://cep.republicavirtual.com.br/web_cep.php?formato=javascript&cep="+CEP, function(){
               if(resultadoCEP["resultado"]){
-                  $rootScope.insCustomer.neighborhood = unescape(resultadoCEP["tipo_logradouro"])+": "+unescape(resultadoCEP["logradouro"]);
+                  $rootScope.insCustomer.street = unescape(resultadoCEP["tipo_logradouro"])+": "+unescape(resultadoCEP["logradouro"]);
                   $rootScope.insCustomer.neighborhood = unescape(resultadoCEP["bairro"]);
-                  $rootScope.insCustomer.neighborhood = unescape(resultadoCEP["cidade"]);
-                  $rootScope.insCustomer.neighborhood = unescape(resultadoCEP["uf"]);
+                  $rootScope.insCustomer.city = unescape(resultadoCEP["cidade"]);
+                  $rootScope.insCustomer.region = unescape(resultadoCEP["uf"]);
               }
           }); 
       }
@@ -678,15 +723,121 @@ console.log( JSON.stringify(params) );
       });
 
       $rootScope.customerDocument = insCustomer.taxvat;
-      $scope.searchCustomer($rootScope.customerDocument);
+      $rootScope.searchCustomer($rootScope.customerDocument);
       $scope.modalCadastro.hide();
+    }
+
+})
+
+.controller('printCtrl', function($scope, $rootScope, $cordovaPrinter, $state, salesOrderFactory, customerFactory, customerAddressFactory, salesOrderItemFactory ) {
+    $rootScope.cancelLoad = function() {
+        $rootScope.loadMode = false;
+        $rootScope.OrderIDLoaded = null;
+        $rootScope.closedOrder = null;
+
+        $rootScope.totCar = 0;
+        $rootScope.cartItens = [];       
+    }
+
+    $rootScope.openOrder = function(orderToOpen) {
+        $rootScope.totCar = 0;
+        $rootScope.cartItens = [];
+        $rootScope.loadMode = true;
+        $rootScope.OrderIDLoaded = orderToOpen.ID;
+        $rootScope.closedOrder = orderToOpen.SYNC;
+        salesOrderFactory.select(orderToOpen.ID).then(function(resultOrder) {
+          for (var i = 0; i <= resultOrder.length-1; i++) {
+            var OrderAt = resultOrder[i];
+            customerFactory.selectById(resultOrder[i].CUSTOMER_ID).then(function(resultCustomer) {
+              salesOrderItemFactory.select(OrderAt.ID).then(function(resultOrderItem) {
+                if(resultOrderItem){
+                  //load cliente
+                  $state.go('tabsController.cliente');
+                  $rootScope.customerDocument = resultCustomer.EMAIL;
+
+                  customerFactory.select(resultCustomer.EMAIL).then(function(result) {
+                    $rootScope.customer = [];
+                    $rootScope.addressCustomer = [];
+                    $rootScope.currentItem = result;
+                    $rootScope.customerDocument = resultCustomer.EMAIL;
+
+                    if( result != null ){
+                      $rootScope.customer.push($rootScope.currentItem);
+                      customerAddressFactory.select(result['ID']).then(function(result) {
+                        console.log(result);
+                        $rootScope.addressCustomer = [];
+                        $rootScope.addressCustomer.push(result);
+
+                        for (var x = 0; x <= resultOrderItem.length-1; x++) {
+                          $rootScope.barcodeNumber = resultOrderItem[x].SKU;
+                          $rootScope.searchBarCode( $rootScope.barcodeNumber, resultOrderItem[x].QTY ).then(    
+                            function(){
+                              $rootScope.addToCart();
+                              $state.go('tabsController.venda');
+                            }
+                          );
+                        }
+                      });
+                    }
+                  });
+                }else{
+                  $rootScope.loadMode = false;
+                  $rootScope.OrderIDLoaded = "";
+                  $rootScope.closedOrder = "";
+                }
+
+              });
+            });
+          };
+        });      
+    }
+
+    $rootScope.print = function(orderToPrint) {
+      $rootScope.orderPrint = [];
+
+      document.addEventListener('deviceready', function () {
+        salesOrderFactory.select(orderToPrint.ID).then(function(resultOrder) {
+          for (var i = 0; i <= resultOrder.length-1; i++) {
+            var OrderAt = resultOrder[i];
+            customerFactory.selectById(resultOrder[i].CUSTOMER_ID).then(function(resultCustomer) {
+              salesOrderItemFactory.select(OrderAt.ID).then(function(resultOrderItem) {
+                var prodOrder = [];
+                for (var x = 0; x <= resultOrderItem.length-1; x++) {
+                  prodOrder.push( resultOrderItem[x] );  
+                }
+
+                $rootScope.orderPrint.customer = resultCustomer.FIRSTNAME;
+                $rootScope.orderPrint.tot = OrderAt.TOT_VLR;
+                $rootScope.orderPrint.payMet = OrderAt.PAYMENT_METHOD;
+                $rootScope.orderPrint.items = prodOrder;
+ 
+                cordova.plugins.printer.isAvailable(
+                  function (isAvailable, installedAppIds) {
+                      if (isAvailable) {
+                        var page = document.getElementById('repForPrint');
+                        cordova.plugins.printer.print(page, 'Document.html', function () {
+
+                        });
+                      }else{
+                        alert('Impressora não disponivel');
+                      }
+                  }
+                );
+
+              });
+            });
+          };
+        });
+      
+      }, false);
+
     }
 
 })
 
 .controller("barcodeCtrl", function($scope, $rootScope, $cordovaBarcodeScanner) {
     $rootScope.showBarCodeRTC = false;
-    $scope.barcodeNumber = "";
+    $rootScope.barcodeNumber = "";
     $scope.scanBarcode = function() {
       console.log($rootScope.conn.BARCODE);
         //if( $rootScope.conn.BARCODE == "Barcode Default" ){

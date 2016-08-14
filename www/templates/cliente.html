@@ -2,7 +2,7 @@
     <ion-content ng-controller="clienteCtrl" padding="true" class="has-header">
         <form id="cliente-form4" class="list ">
             <label class="item item-input " id="cliente-textarea3">
-                <input type="text" ng-model="customerDocument" placeholder="Email/CPF do Cliente" ng-change="searchCustomer(customerDocument)"></input>
+                <input type="text" ng-model="customerDocument" ng-disabled="loadMode" placeholder="Email/CPF do Cliente" ng-change="searchCustomer(customerDocument)"></input>
             </label>
         </form>
         <div>
@@ -72,11 +72,17 @@
             <label class="item item-input " id="city">
                 <input type="text" ng-model="insCustomer.city" placeholder="Insira a Cidade"></input>
             </label>
-
-            <label class="item item-input " id="region">
-                <input type="text" ng-model="insCustomer.region" placeholder="Insira o Estado"></input>
-            </label>
-
+        </ion-item>
+        <ion-item>
+            <label class="item item-input item-select">
+                <div class="input-label">
+                    Estado
+                </div>
+                <select ng-model="insCustomer.region" ng-options="item for item in regionsOpts">
+                </select>
+            </label>    
+        </ion-item>
+        <ion-item>
             <label class="item item-input " id="street">
                 <input type="text" ng-model="insCustomer.street" placeholder="Insira a Rua"></input>
             </label>    

@@ -1,12 +1,15 @@
 <ion-view title="Relatório" id="page8" class=" ">
+    <div ng-controller="clienteCtrl">
+    </div>
     <ion-content ng-controller="vendaCtrl" ng-init="loadAllOrders()" padding="true" class="has-header">
         <form id="venda-form4" class="list ">
             <ion-list>
                 <ion-item class="item-remove-animate" ng-repeat="x in ordersRel">
                     <ion-item class="item-icon-right" ng-controller="printCtrl">
-
-                        <div class="input-wrapper">
+                        <div class="input-wrapper" ng-click="openOrder(x)">
                             <ion-label>
+                                <span ng-show="x.SYNC == 'S'" style="border-radius: 3px; background: #fb806a; color:white">Fechado</span>
+                                <span ng-show="x.SYNC == 'N'" style="border-radius: 3px; background: #6afb7b; color:white">Aberto</span>
                                 <h2>{{ x.FIRSTNAME }}</h2>
                                 <p>{{x.DTA_CREATE}}</p>
                             </ion-label>

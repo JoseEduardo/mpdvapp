@@ -9,13 +9,15 @@ sqlite.run(function($ionicPlatform, $cordovaSQLite) {
       db = window.openDatabase("magepdv.db", '1', 'magepdv', 1024 * 1024 * 100); // browser
     }
 
-//    $cordovaSQLite.execute(db, "DROP TABLE CUSTOMER");
-//    $cordovaSQLite.execute(db, "DROP TABLE CUSTOMER_ADDR");
-//    $cordovaSQLite.execute(db, "DROP TABLE SALESORDER_ITEM");
-//    $cordovaSQLite.execute(db, "DROP TABLE PRODUCT");
-//    $cordovaSQLite.execute(db, "DROP TABLE CONFIGURATION");
-//    $cordovaSQLite.execute(db, "DROP TABLE LOGIN");
-//    $cordovaSQLite.execute(db, "DROP TABLE SALESORDER");
+    if('false' == 'True'){
+      $cordovaSQLite.execute(db, "DROP TABLE CUSTOMER");
+      $cordovaSQLite.execute(db, "DROP TABLE CUSTOMER_ADDR");
+      $cordovaSQLite.execute(db, "DROP TABLE SALESORDER_ITEM");
+      $cordovaSQLite.execute(db, "DROP TABLE PRODUCT");
+      $cordovaSQLite.execute(db, "DROP TABLE CONFIGURATION");
+      $cordovaSQLite.execute(db, "DROP TABLE LOGIN");
+      $cordovaSQLite.execute(db, "DROP TABLE SALESORDER");
+    }
 
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS PRODUCT (ID integer primary key, PRODUCT_ID integer, COD_BARRA varchar(250), NAME varchar(250), IMG_1 varchar(250), IMG_2 varchar(250), SKU varchar(30), PRICE real, STOCK real)");
     $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS PRODUCT_PRICE (ID integer primary key, PRODUCT_ID integer, GROUP_ID integer, PRICE real)");
@@ -89,9 +91,9 @@ sqlite.factory('productFactory', function($cordovaSQLite, $rootScope) {
             $rootScope.showInterface = true;
             $rootScope.impProdStatus = "";
             $rootScope.impProdAtual = 0;
-            $rootScope.impProdTot = "";
-
             $rootScope.countProd = $rootScope.impProdTot;
+
+            $rootScope.impProdTot = "";
           }
         },
         function(err) {
@@ -414,6 +416,12 @@ sqlite.factory('salesOrderFactory', function($cordovaSQLite) {
         }
       );
     },
+    update : function(ORDER_ID, PAYMENT_METHOD, ID_PAYMENT_METHOD, TOT_VLR){
+      var query = "UPDATE SALESORDER SET PAYMENT_METHOD = ?, ID_PAYMENT_METHOD = ?, TOT_VLR = ?;";
+      var values = [PAYMENT_METHOD, ID_PAYMENT_METHOD, TOT_VLR];
+
+      return $cordovaSQLite.execute(db, query, values);
+    },
     select : function(ID_ORDER){
       var query = "SELECT * FROM SALESORDER WHERE ID = '"+ID_ORDER+"';"; 
 
@@ -528,7 +536,6 @@ sqlite.factory('salesOrderItemFactory', function($cordovaSQLite) {
             for (var i = 0; i <= res.rows.length-1; i++) {
               returArray.push( res.rows.item(i) );
             };
-
             return returArray;
           } else {
             return null;
@@ -536,8 +543,11 @@ sqlite.factory('salesOrderItemFactory', function($cordovaSQLite) {
         }
       );
     },
+    deleteOrderID : function(searchData){
+      $cordovaSQLite.execute(db, "DELETE FROM SALESORDER_ITEM WHERE ORDER_ID = '"+searchData+"'");
+    },
     deleteAll : function(){
-      $cordovaSQLite.execute(db, "DELETE FROM SALESORDER");
+      $cordovaSQLite.execute(db, "DELETE FROM SALESORDER_ITEM");
     },
   }
 });
