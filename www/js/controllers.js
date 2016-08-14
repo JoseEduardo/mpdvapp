@@ -439,7 +439,7 @@ angular.module('app.controllers', [])
         $scope.noStock = false;
 
         if(result){
-          //$scope.getImageOfProduct(result.PRODUCT_ID);
+          $scope.getImageOfProduct(result);
         }else{
           $scope.imageProd1 = null;
         }
@@ -577,15 +577,21 @@ angular.module('app.controllers', [])
       });
     }; 
 
-    $scope.getImageOfProduct = function(id_product) {
-      $scope.imageProd1 = null;
-      if($cordovaDevice.getPlatform() == 'iOS'){
-         fileDeviceDir = cordova.file.dataDirectory;
+    $scope.getImageOfProduct = function(productData) {
+      if( $cordovaNetwork.isOnline() ){
+        $scope.imageProd1 = productData.IMG_1;
       }else{
-         fileDeviceDir = cordova.file.externalRootDirectory;
+        var id_product = productData.PRODUCT_ID
+        $scope.imageProd1 = null;
+        if($cordovaDevice.getPlatform() == 'iOS'){
+           fileDeviceDir = cordova.file.dataDirectory;
+        }else{
+           fileDeviceDir = cordova.file.externalRootDirectory;
+        }
+
+        $scope.imageProd1 = fileDeviceDir + "magepdv/" + id_product + "/1.jpg";      
       }
 
-      $scope.imageProd1 = fileDeviceDir + "magepdv/" + id_product + "/1.jpg";
     };
 
     $ionicModal.fromTemplateUrl('editcart.html', {
