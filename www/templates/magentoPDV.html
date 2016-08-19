@@ -5,7 +5,7 @@
                 <img src="img/logo.png" width="50%" height="120" style="display: block; margin-left: auto; margin-right: auto;">
             </div>
             <h4 id="magentoPDV-heading1" ng-init="getAllProducts()" style="color:#000000;text-align:center;" class=" ">{{ countProd }} Produto(s)</h4>
-            <h4 id="magentoPDV-heading4" ng-init="getAllOrders()" style="color:#000000;text-align:center;" class=" ">{{ countOrders }} Venda(s)</h4>
+            <h4 id="magentoPDV-heading4" ng-init="getAllOrders()" style="color:#000000;text-align:center;" class=" ">{{ countOrders }} Venda(s) pendente(s)</h4>
 
             <div ng-show="!showInterface">
                 {{impProdAtual.value}}
@@ -14,11 +14,13 @@
                 <h4 style="color:#000000;text-align:center;" >
                     {{testeNum.value}}{{impProdAtual}}{{impCustomerAtual}}/{{impProdTot}}{{impCustomerTot}}</h4>
             </div>
-            <div ng-show="showInterface">
-            	<button id="magentoPDV-button2" ng-click="doCreateOrderPHP()" style="color:#FFFFFF;" class=" button button-dark  button-block icon ion-android-arrow-up ">Descarregar Vendas</button>
-            	<button id="magentoPDV-button3" ng-click="getAllProductsPHP()" class=" button button-balanced  button-block icon ion-android-arrow-down ">Inserir Produtos</button>
-     		    <button id="magentoPDV-button4" ng-click="getAllCustomersPHP()" class=" button button-balanced  button-block icon ion-android-arrow-down ">Inserir Clientes</button>
-            </div>   
+            <div ng-show="getNetState()">
+                <div ng-show="showInterface">
+                	<button id="magentoPDV-button2" ng-click="doCreateOrderPHP()" style="color:#FFFFFF;" class=" button button-dark  button-block icon ion-android-arrow-up ">Descarregar Vendas</button>
+                	<button id="magentoPDV-button3" ng-click="getAllProductsPHP()" class=" button button-balanced  button-block icon ion-android-arrow-down ">Inserir Produtos</button>
+         		    <button id="magentoPDV-button4" ng-click="getAllCustomersPHP()" class=" button button-balanced  button-block icon ion-android-arrow-down ">Inserir Clientes</button>
+                </div> 
+            </div>  
         </div>
 		
     </ion-content>

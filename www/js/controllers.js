@@ -81,6 +81,10 @@ angular.module('app.controllers', [])
 
     }
 
+    $rootScope.getNetState = function() {
+      return navigator.onLine;
+    }
+
     $rootScope.saveConfiguration = function() {
       configurationFactory.deleteAll();
       configurationFactory.insert($rootScope.conn.WS_URL, $rootScope.conn.WS_LOGIN, $rootScope.conn.WS_PASS, $rootScope.conn.STOCK, $rootScope.conn.IMG_IMP, $rootScope.conn.BARCODE, $rootScope.conn.STORE_ID);
@@ -88,6 +92,8 @@ angular.module('app.controllers', [])
       $rootScope.getAllLoginPHP();
       $rootScope.getAllMetPagPHP();
       $rootScope.showLoginFunc();
+
+      alert('Configurações Salvas');
     }
 
     $scope.loadConfiguration = function() {
@@ -131,7 +137,7 @@ angular.module('app.controllers', [])
     $rootScope.getAllOrders = function() {
       ionic.Platform.ready(function(){
         $scope.loadConfiguration();
-        salesOrderFactory.count().then(function(result) {
+        salesOrderFactory.countUnprocessed().then(function(result) {
           $scope.countOrders = result.TOTORDER;
         });
       });
@@ -152,6 +158,7 @@ angular.module('app.controllers', [])
               });
             };
 
+            $scope.getAllCustomerGroupsPHP();
             $rootScope.showInterface = true;
           })
           .error(function (data, status, headers, config) {
@@ -220,11 +227,11 @@ angular.module('app.controllers', [])
       productFactory.insert(data.product_id, data.name, data.cod_barra, data.sku, data.image1, data.image2, data.price, data.stock, data.group_price);
 
       if(impIMG == "true"){
-        $scope.getSaveImagesProduct(img1, data.product_id+"/1");
+        $scope.doSaveImagesProduct(img1, data.product_id+"/1");
       }
     }
 
-    $scope.getSaveImagesProduct = function (url, name) {
+    $scope.doSaveImagesProduct = function (url, name) {
       ionic.Platform.ready(function(){
         if($cordovaDevice.getPlatform() == 'iOS'){
            fileDeviceDir = cordova.file.dataDirectory;
@@ -253,7 +260,7 @@ angular.module('app.controllers', [])
     }
 
     $rootScope.exportSpecificOrder = function(result, OrderAt) {
-
+      $rootScope.showInterface = false;
       var deferred = $q.defer();
       customerFactory.selectById(OrderAt.CUSTOMER_ID).then(function(resultCustomer) {
         salesOrderItemFactory.select(OrderAt.ID).then(function(resultOrderItem) {
@@ -303,6 +310,7 @@ angular.module('app.controllers', [])
               console.log( res.data );
             });                 
           }
+          $rootScope.showInterface = true;
           deferred.resolve();
         });
       });
@@ -310,6 +318,7 @@ angular.module('app.controllers', [])
     };
 
     $scope.doCreateOrderPHP = function() {
+      $rootScope.showInterface = false;
       configurationFactory.select().then(function(result) {
 
         salesOrderFactory.selectOnlyUnprocessed().then(function(resultOrder) {
@@ -420,7 +429,8 @@ angular.module('app.controllers', [])
     */
 
     $scope.noStock = false;
-    $scope.imageProd1 = null;
+    $rootScope.imageProd1 = null;
+    $rootScope.imageProd1Edt = null;
     $scope.PaymentMethod = [];
     $scope.PaymentMethod.value = null;
 
@@ -441,7 +451,8 @@ angular.module('app.controllers', [])
         if(result){
           $scope.getImageOfProduct(result);
         }else{
-          $scope.imageProd1 = null;
+          $rootScope.imageProd1 = null;
+          $rootScope.imageProd1Edt = null;
         }
         deferred.resolve();
       });
@@ -476,7 +487,8 @@ angular.module('app.controllers', [])
 
       $rootScope.barcodeNumber = null;
       $rootScope.currentItem = null;
-      $scope.imageProd1 = null;
+      $rootScope.imageProd1 = null;
+      $rootScope.imageProd1Edt = null;
     };    
 
     $scope.removeFromCart = function(item) {
@@ -496,6 +508,9 @@ angular.module('app.controllers', [])
 
     $scope.editQtyCart = function(item) {
       if($rootScope.closedOrder != 'S'){
+        $scope.getImageOfProduct(item);
+        $rootScope.imageProd1 = null;
+
         $scope.modal.show();
         $scope.edtItem = item.NAME;
         $rootScope.qtyItemEDT = item.QTY;
@@ -504,10 +519,10 @@ angular.module('app.controllers', [])
       }
     }; 
 
-    $scope.loadAllOrders = function (){
+    $rootScope.loadAllOrders = function (){
       ionic.Platform.ready(function(){
         salesOrderFactory.selectWithData().then(function(resultOrder) {
-          $scope.ordersRel = resultOrder;
+          $rootScope.ordersRel = resultOrder;
         });
       });
     }
@@ -552,19 +567,20 @@ angular.module('app.controllers', [])
 
 
     $scope.placeOrder = function() {
-      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.customer[0].FIRSTNAME, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.PaymentMethod.value.MTP_DESC, $rootScope.PaymentMethod.value.ID, $rootScope.totCar, 'N').then(function(result){
+      salesOrderFactory.insert($rootScope.customer[0].ID_CUSTOMER, $rootScope.customer[0].FIRSTNAME, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.PaymentMethod.value.MTP_DESC, $rootScope.PaymentMethod.value.ID, $rootScope.totCar, 'N').then(function(result){
         for (var i = 0; i <= $rootScope.cartItens.length - 1; i++) {
           salesOrderItemFactory.insert(result, $rootScope.cartItens[i].PRODUCT_ID, $rootScope.cartItens[i].SKU, $rootScope.cartItens[i].PRICE, $rootScope.cartItens[i].NAME, $rootScope.cartItens[i].QTY);
         };
 
         $rootScope.getAllOrders();
-        
         var alertPopup = $ionicPopup.confirm({
           title: 'Venda',
           template: 'Finalizada com sucesso, deseja imprimir?'
         });
 
         alertPopup.then(function(res) {
+          console.log('Cancel');
+          $rootScope.loadAllOrders();
           if(res) {
             var objPrint = [];
             objPrint.ID = result;
@@ -578,20 +594,23 @@ angular.module('app.controllers', [])
     }; 
 
     $scope.getImageOfProduct = function(productData) {
-      if( $cordovaNetwork.isOnline() ){
-        $scope.imageProd1 = productData.IMG_1;
+      if( navigator.onLine ){
+        $rootScope.imageProd1 = productData.IMG_1;
+        $rootScope.imageProd1Edt = productData.IMG_1;
       }else{
         var id_product = productData.PRODUCT_ID
-        $scope.imageProd1 = null;
+        $rootScope.imageProd1 = null;
+        $rootScope.imageProd1Edt = null;
         if($cordovaDevice.getPlatform() == 'iOS'){
            fileDeviceDir = cordova.file.dataDirectory;
         }else{
            fileDeviceDir = cordova.file.externalRootDirectory;
         }
 
-        $scope.imageProd1 = fileDeviceDir + "magepdv/" + id_product + "/1.jpg";      
+        $rootScope.imageProd1 = fileDeviceDir + "magepdv/" + id_product + "/1.jpg";
+        $rootScope.imageProd1Edt = fileDeviceDir + "magepdv/" + id_product + "/1.jpg";  
       }
-
+console.log( $rootScope.imageProd1 );
     };
 
     $ionicModal.fromTemplateUrl('editcart.html', {
@@ -616,6 +635,10 @@ angular.module('app.controllers', [])
       $scope.modal.hide();
     };
 
+    $scope.$on('modal.hidden', function() {
+      $rootScope.imageProd1Edt = null;
+    });
+
     $ionicModal.fromTemplateUrl('methods.html', {
       scope: $scope,
       animation: 'slide-in-up'
@@ -637,7 +660,7 @@ angular.module('app.controllers', [])
 
 })
 
-.controller('clienteCtrl', function($scope, $rootScope, $ionicModal, $cordovaNetwork, customerFactory, customerAddressFactory, customerGroupFactory) {
+.controller('clienteCtrl', function($scope, $rootScope, $ionicModal, customerFactory, customerAddressFactory, customerGroupFactory) {
     $rootScope.customer = [];
     $rootScope.addressCustomer = [];
     $scope.currentItem = null;
@@ -667,15 +690,18 @@ angular.module('app.controllers', [])
     };
 
     $scope.getCEP = function(CEP) {
-      if( $cordovaNetwork.isOnline() && CEP != "" ){
+//      var networkState = navigator.connection.type;
+
+      if( navigator.onLine && CEP != "" ){
         console.log(CEP);
           $.getScript("http://cep.republicavirtual.com.br/web_cep.php?formato=javascript&cep="+CEP, function(){
-              if(resultadoCEP["resultado"]){
+              console.log( resultadoCEP["cidade"] );
+              //if(resultadoCEP["cidade"]){
                   $rootScope.insCustomer.street = unescape(resultadoCEP["tipo_logradouro"])+": "+unescape(resultadoCEP["logradouro"]);
                   $rootScope.insCustomer.neighborhood = unescape(resultadoCEP["bairro"]);
                   $rootScope.insCustomer.city = unescape(resultadoCEP["cidade"]);
                   $rootScope.insCustomer.region = unescape(resultadoCEP["uf"]);
-              }
+              //}
           }); 
       }
     };
@@ -688,9 +714,18 @@ angular.module('app.controllers', [])
     });
 
     $scope.showInsertCustomerMenu = function() {
+      $rootScope.groupscustomer = [{MTP_ID:'10', MTP_DESC:'Tabela Padrão'}, {MTP_ID:'11', MTP_DESC:'Tabela Loja Virtual'}];
+      $rootScope.tipoPess = [{id:'pf', desc:'Pessoa Fisica'}, {id:'pj', desc:'Pessoa Juridica'}];
+      $rootScope.ctrlArray = [];
+
+      $rootScope.ctrlArray[10] = 'Tabela Padrão';
+      $rootScope.ctrlArray[11] = 'Tabela Loja Virtual';
+
+      $scope.modalCadastro.show();
+      /*
       customerGroupFactory.select().then(function(result){
         $rootScope.groupscustomer = result;
-        $rootScope.tipoPess = [{id:'pf', desc:'Pessoa Fisica'}, {id:'pj', desc:'Pessoa Juridica'}]
+        $rootScope.tipoPess = [{id:'pf', desc:'Pessoa Fisica'}, {id:'pj', desc:'Pessoa Juridica'}];
 
         $rootScope.ctrlArray = [];
         for (var i = 0; i <= result.length-1; i++) {
@@ -699,11 +734,11 @@ angular.module('app.controllers', [])
 
         $scope.modalCadastro.show();
       });
+      */
     }
 
-    $scope.checkCustomer = function() {
-      customerFactory.selectByTax().then(function(result){
-        console.log(result);
+    $scope.checkCustomer = function(document) {
+      customerFactory.selectByTax(document).then(function(result){
         if(result){
           $scope.taxIsUsed = true;
         }else{
@@ -712,26 +747,56 @@ angular.module('app.controllers', [])
       });
     }
 
-    $scope.insertCustomer = function(insCustomer) {
-      if( insCustomer.CustomerTipPess.value.id == 'pf' ){
-        insCustomer.taxvat = insCustomer.cpf;
-      }else{
-        insCustomer.taxvat = insCustomer.cnpj;
-      }
-
-      customerFactory.insertSingle('-1', insCustomer.CustomerGroup.value.GROUP_ID, insCustomer.firstname, insCustomer.lastname, insCustomer.email, insCustomer.taxvat, '-1', insCustomer.CustomerTipPess.value.id).then(function(result) {
-        customerAddressFactory.insertComp(result, insCustomer.street, insCustomer.region, insCustomer.number, insCustomer.comment, insCustomer.neighborhood, insCustomer.city, insCustomer.cep, insCustomer.tel).then(function(result) {
-          alert('Cliente inserido com sucesso.');
-          $scope.insCustomer = [];
-          $rootScope.insCustomer = [];
-          insCustomer = [];
-        });
+    $scope.checkCustomerEmail = function(email) {
+      customerFactory.selectByEmail(email).then(function(result){
+        if(result){
+          $scope.emailIsUsed = true;
+        }else{
+          $scope.emailIsUsed = false;
+        }
       });
+    }
 
-      $rootScope.customerDocument = insCustomer.taxvat;
-      $rootScope.searchCustomer($rootScope.customerDocument);
+    $scope.validadeCPForCNPJ = function() {
+
+    }
+
+    $scope.validadeEmail = function() {
+      
+    }
+
+    $scope.insertCustomer = function(insCustomer) { 
+      if( Object.keys(insCustomer).length < 13 ){
+        alert('Preencha todos os campos.');
+      }else{
+        if( insCustomer.CustomerTipPess.value.id == 'pf' ){
+          insCustomer.taxvat = insCustomer.cpf;
+        }else{
+          insCustomer.taxvat = insCustomer.cnpj;
+        }
+
+        customerFactory.insertSingle('-1', insCustomer.CustomerGroup.value.GROUP_ID, insCustomer.firstname, insCustomer.lastname, insCustomer.email, insCustomer.taxvat, '-1', insCustomer.CustomerTipPess.value.id).then(function(result) {
+          customerAddressFactory.insertComp(result, insCustomer.street, insCustomer.region, insCustomer.number, insCustomer.comment, insCustomer.neighborhood, insCustomer.city, insCustomer.cep, insCustomer.tel).then(function(result) {
+            alert('Cliente inserido com sucesso.');
+            $scope.insCustomer = [];
+            $rootScope.insCustomer = [];
+            insCustomer = [];
+          });
+        });
+
+        $rootScope.customerDocument = insCustomer.taxvat;
+        $rootScope.searchCustomer($rootScope.customerDocument);
+        $scope.modalCadastro.hide();
+      }
+    }
+
+    $scope.cancelInsertCustomer = function() {
+      $scope.insCustomer = [];
+      $rootScope.insCustomer = [];
+      insCustomer = [];
       $scope.modalCadastro.hide();
     }
+
 
 })
 
@@ -846,14 +911,7 @@ angular.module('app.controllers', [])
     $rootScope.barcodeNumber = "";
     $scope.scanBarcode = function() {
       console.log($rootScope.conn.BARCODE);
-        //if( $rootScope.conn.BARCODE == "Barcode Default" ){
-          $cordovaBarcodeScanner.scan().then(function(imageData) {
-              $scope.barcodeNumber = imageData.text;
-          }, function(error) {
-              console.log(error);
-          });
-        //}else{
-          /*
+        if( $rootScope.conn.BARCODE == "Barcode Advanced" ){
           $rootScope.showBarCodeRTC = true;
           
           ionic.Platform.ready(function(){
@@ -868,12 +926,20 @@ angular.module('app.controllers', [])
             barcode.init();
 
             jQuery('#result').bind('DOMSubtreeModified', function(e) {
+              alet('asasdasdads');
               console.log('asdasdasdasd'); 
             });
 
           });
-          */
-        //}
+        }else{
+          $cordovaBarcodeScanner.scan().then(function(imageData) {
+              $rootScope.barcodeNumber = imageData.text;
+              console.log($rootScope.barcodeNumber);
+          }, function(error) {
+              console.log(error);
+          });
+          
+        }
 
     };
 

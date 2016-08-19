@@ -51,7 +51,7 @@
                 </label>
             </div>
             <label class="item item-input " id="email">
-                <input type="text" ng-model="insCustomer.email" placeholder="Insira o Email"></input>
+                <input type="email" ng-model="insCustomer.email" ng-change="checkCustomerEmail(insCustomer.email)" placeholder="Insira o Email" required></input>
             </label>
             <label class="item item-input " id="firstname">
                 <input type="text" ng-model="insCustomer.firstname" placeholder="Insira o Primeiro Nome"></input>
@@ -105,8 +105,11 @@
             <div ng-show="taxIsUsed">
                 CPF/CNPJ em uso.
             </div>
-            <button ng-disabled="taxIsUsed" ng-click="insertCustomer(insCustomer)" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">CONFIRMAR</button>
-            <button ng-click="modalCadastro.hide()" style="width:49% !important; display:inline;" class=" button button-assertive  button-block ">Cancelar</button>
+            <div ng-show="emailIsUsed">
+                Email em uso.
+            </div>
+            <button ng-disabled="taxIsUsed || emailIsUsed" ng-click="insertCustomer(insCustomer)" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">CONFIRMAR</button>
+            <button ng-click="" style="width:49% !important; display:inline;" class=" button button-assertive  button-block ">Cancelar</button>
         </ion-item>
       </ion-content>
     </ion-modal-view>

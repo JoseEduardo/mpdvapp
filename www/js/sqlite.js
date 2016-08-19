@@ -251,7 +251,7 @@ sqlite.factory('customerFactory', function($cordovaSQLite, $rootScope, customerA
       );
     },
     selectById : function(searchData){
-      var query = "SELECT * FROM CUSTOMER WHERE ID = '"+searchData+"'"; 
+      var query = "SELECT * FROM CUSTOMER WHERE ID_CUSTOMER = '"+searchData+"'"; 
 
       return $cordovaSQLite.execute(db, query).then(
         function(res) {
@@ -280,6 +280,19 @@ sqlite.factory('customerFactory', function($cordovaSQLite, $rootScope, customerA
     },
     selectByTax : function(searchData){
       var query = "SELECT * FROM CUSTOMER WHERE TAXVAT = '"+searchData+"'"; 
+
+      return $cordovaSQLite.execute(db, query).then(
+        function(res) {
+          if (res.rows.length > 0) {
+            return res.rows.item(0);
+          } else {
+            return null;
+          }
+        }
+      );
+    },
+    selectByEmail : function(searchData){
+      var query = "SELECT * FROM CUSTOMER WHERE EMAIL = '"+searchData+"'"; 
 
       return $cordovaSQLite.execute(db, query).then(
         function(res) {
@@ -467,7 +480,7 @@ sqlite.factory('salesOrderFactory', function($cordovaSQLite) {
       );
     },
     selectWithData : function(){
-      var query = "SELECT SSD.*, CUS.FIRSTNAME, CUS.EMAIL FROM SALESORDER SSD INNER JOIN CUSTOMER CUS WHERE CUS.ID_CUSTOMER = SSD.CUSTOMER_ID;"; 
+      var query = "SELECT SSD.*, CUS.FIRSTNAME, CUS.EMAIL FROM SALESORDER SSD INNER JOIN CUSTOMER CUS WHERE SSD.CUSTOMER_ID = CUS.ID_CUSTOMER"; 
 
       return $cordovaSQLite.execute(db, query).then(
         function(res) {
@@ -493,6 +506,19 @@ sqlite.factory('salesOrderFactory', function($cordovaSQLite) {
     },   
     count : function(sku){
       var query = "SELECT COUNT(*) AS TOTORDER FROM SALESORDER";
+
+    return $cordovaSQLite.execute(db, query).then(
+      function(res) {
+        if (res.rows.length > 0) {
+          return res.rows.item(0);
+        } else {
+          return 0;
+        }
+      }
+    );
+    },
+    countUnprocessed : function(sku){
+      var query = "SELECT COUNT(*) AS TOTORDER FROM SALESORDER WHERE SYNC = 'N'";
 
     return $cordovaSQLite.execute(db, query).then(
       function(res) {
