@@ -502,7 +502,11 @@ sqlite.factory('salesOrderFactory', function($cordovaSQLite) {
       );
     },
     checkOrder : function(id){
-      $cordovaSQLite.execute(db, "UPDATE SALESORDER SET SYNC = 'S' WHERE ID = '"+id+"'");
+      return $cordovaSQLite.execute(db, "UPDATE SALESORDER SET SYNC = 'S' WHERE ID = '"+id+"'").then(
+        function(res) {
+          return true;
+        }
+      );
     },   
     count : function(sku){
       var query = "SELECT COUNT(*) AS TOTORDER FROM SALESORDER";

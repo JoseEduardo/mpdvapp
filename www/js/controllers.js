@@ -214,7 +214,14 @@ angular.module('app.controllers', [])
 
           })
           .error(function (data, status, headers, config) {
-            console.log('data error');
+            $rootScope.impCustomerAtual = "";
+            $rootScope.impCustomerTot = "";
+
+            $rootScope.impProdTot = "";
+            $rootScope.impProdAtual = 0;
+            $rootScope.impProdStatus = "";
+            $rootScope.showInterface = true;
+            alert( 'Ocorreu um erro ao se conectar com o Servidor.' );
           })
           .then(function (result) {
             things = result.data;
@@ -286,8 +293,10 @@ angular.module('app.controllers', [])
               };   
               console.log( JSON.stringify(params)  );
               $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
-                salesOrderFactory.checkOrder(OrderAt.ID);
-                console.log( res.data );
+                salesOrderFactory.checkOrder(OrderAt.ID).then(function(x) {
+                  $rootScope.loadAllOrders();
+                  $rootScope.showInterface = true;
+                });
               }); 
             });
           }else{
@@ -306,11 +315,12 @@ angular.module('app.controllers', [])
             console.log(OrderAt);
             console.log( JSON.stringify(params) );
             $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
-              salesOrderFactory.checkOrder(OrderAt.ID);
-              console.log( res.data );
+              salesOrderFactory.checkOrder(OrderAt.ID).then(function(x) {
+                $rootScope.loadAllOrders();
+                $rootScope.showInterface = true;
+              });
             });                 
           }
-          $rootScope.showInterface = true;
           deferred.resolve();
         });
       });
@@ -460,7 +470,6 @@ angular.module('app.controllers', [])
     };
 
     $rootScope.addToCart = function() {
-      console.log($rootScope.cartItens);
       var itemEx = false;
       $rootScope.totCar = 0;
       for(i = 0; i < $rootScope.cartItens.length; i++) { 
@@ -484,8 +493,9 @@ angular.module('app.controllers', [])
 
         $rootScope.totCar += Number($rootScope.currentItem.QTY)*Number($rootScope.currentItem.PRICE);
       }
-
-      $rootScope.barcodeNumber = null;
+console.log( $rootScope.barcodeNumber );
+      $rootScope.barcodeNumber = "";
+console.log( $rootScope.barcodeNumber );
       $rootScope.currentItem = null;
       $rootScope.imageProd1 = null;
       $rootScope.imageProd1Edt = null;
@@ -493,15 +503,18 @@ angular.module('app.controllers', [])
 
     $scope.removeFromCart = function(item) {
       if($rootScope.closedOrder != 'S'){
-        $rootScope.totCar = 0;
         $rootScope.ctrlArray = [];
 
-        for(i = 0; i < $rootScope.cartItens.length; i++) { 
+        for(i = 0; i <= $rootScope.cartItens.length; i++) { 
           if($rootScope.cartItens[i] == item){
             $rootScope.cartItens.splice(i, 1);
-          }else{
-            $rootScope.totCar += Number($rootScope.cartItens[i].QTY)*Number($rootScope.cartItens[i].PRICE);
-          }   
+            break;
+          }  
+        }
+
+        $rootScope.totCar = 0;
+        for(i = 0; i <= $rootScope.cartItens.length; i++) { 
+          $rootScope.totCar += Number($rootScope.cartItens[i].QTY)*Number($rootScope.cartItens[i].PRICE); 
         }
       }
     }; 
@@ -579,7 +592,6 @@ angular.module('app.controllers', [])
         });
 
         alertPopup.then(function(res) {
-          console.log('Cancel');
           $rootScope.loadAllOrders();
           if(res) {
             var objPrint = [];
@@ -689,6 +701,41 @@ console.log( $rootScope.imageProd1 );
       });
     };
 
+    $scope.translatorEstado = function(stado) {
+      switch(stado) {
+        case "AC": retorno = "Acre"; break;
+        case "AL": retorno = "Alagoas"; break;
+        case "AP": retorno = "Amapá"; break;
+        case "AM": retorno = "Amazonas"; break;
+        case "BA": retorno = "Bahia"; break;
+        case "CE": retorno = "Ceará"; break;
+        case "DF": retorno = "Distrito Federal"; break;
+        case "ES": retorno = "Espírito Santo"; break;
+        case "GO": retorno = "Goiás"; break;
+        case "MA": retorno = "Maranhão"; break;
+        case "MT": retorno = "Mato Grosso"; break;
+        case "MS": retorno = "Mato Grosso do Sul"; break;
+        case "MG": retorno = "Minas Gerais"; break;
+        case "PA": retorno = "Pará"; break;
+        case "PB": retorno = "Paraíba"; break;
+        case "PR": retorno = "Paraná"; break;
+        case "PE": retorno = "Pernambuco"; break;
+        case "PI": retorno = "Piauí"; break;
+        case "RJ": retorno = "Rio de Janeiro"; break;
+        case "RN": retorno = "Rio Grande do Norte"; break;
+        case "RS": retorno = "Rio Grande do Sul"; break;
+        case "RO": retorno = "Rondônia"; break;
+        case "RR": retorno = "Roraima"; break;
+        case "SC": retorno = "Santa Catarina"; break;
+        case "SP": retorno = "São Paulo"; break;
+        case "SE": retorno = "Sergipe"; break;
+        case "TO": retorno = "Tocantins"; break;
+        default:  retorno = "";
+      }
+
+      return retorno;
+    }
+
     $scope.getCEP = function(CEP) {
 //      var networkState = navigator.connection.type;
 
@@ -700,7 +747,7 @@ console.log( $rootScope.imageProd1 );
                   $rootScope.insCustomer.street = unescape(resultadoCEP["tipo_logradouro"])+": "+unescape(resultadoCEP["logradouro"]);
                   $rootScope.insCustomer.neighborhood = unescape(resultadoCEP["bairro"]);
                   $rootScope.insCustomer.city = unescape(resultadoCEP["cidade"]);
-                  $rootScope.insCustomer.region = unescape(resultadoCEP["uf"]);
+                  $rootScope.insCustomer.region =  $scope.translatorEstado( unescape(resultadoCEP["uf"]) );
               //}
           }); 
       }
@@ -757,12 +804,112 @@ console.log( $rootScope.imageProd1 );
       });
     }
 
-    $scope.validadeCPForCNPJ = function() {
-
+    $scope.validadeCPF = function(cpf) {
+      cpf = cpf.replace(/[^\d]+/g,'');    
+      // Elimina CPFs invalidos conhecidos    
+      if (cpf.length != 11 || 
+          cpf == "00000000000" || 
+          cpf == "11111111111" || 
+          cpf == "22222222222" || 
+          cpf == "33333333333" || 
+          cpf == "44444444444" || 
+          cpf == "55555555555" || 
+          cpf == "66666666666" || 
+          cpf == "77777777777" || 
+          cpf == "88888888888" || 
+          cpf == "99999999999"){
+              $scope.taxIsUsed = true;
+              return false;
+          } 
+      // Valida 1o digito 
+      add = 0;    
+      for (i=0; i < 9; i ++)       
+          add += parseInt(cpf.charAt(i)) * (10 - i);  
+          rev = 11 - (add % 11);  
+          if (rev == 10 || rev == 11)     
+              rev = 0;    
+          if (rev != parseInt(cpf.charAt(9))){ 
+            $scope.taxIsUsed = true;
+            return false;
+          }
+      // Valida 2o digito 
+      add = 0;    
+      for (i = 0; i < 10; i ++)        
+          add += parseInt(cpf.charAt(i)) * (11 - i);  
+      rev = 11 - (add % 11);  
+      if (rev == 10 || rev == 11) 
+          rev = 0;    
+      if (rev != parseInt(cpf.charAt(10))){
+          $scope.taxIsUsed = true;
+          return false;
+      }
+      return true;
     }
 
-    $scope.validadeEmail = function() {
-      
+    $scope.validadeCNPJ = function(cnpj) {
+      cnpj = cnpj.replace(/[^\d]+/g,'');
+      if (cnpj.length != 14){
+          $scope.taxIsUsed = true;
+          return false;
+      }
+   
+      // Elimina CNPJs invalidos conhecidos
+      if (cnpj == "00000000000000" || 
+          cnpj == "11111111111111" || 
+          cnpj == "22222222222222" || 
+          cnpj == "33333333333333" || 
+          cnpj == "44444444444444" || 
+          cnpj == "55555555555555" || 
+          cnpj == "66666666666666" || 
+          cnpj == "77777777777777" || 
+          cnpj == "88888888888888" || 
+          cnpj == "99999999999999"){
+          $scope.taxIsUsed = true;
+          return false;
+      }
+           
+      // Valida DVs
+      tamanho = cnpj.length - 2
+      numeros = cnpj.substring(0,tamanho);
+      digitos = cnpj.substring(tamanho);
+      soma = 0;
+      pos = tamanho - 7;
+      for (i = tamanho; i >= 1; i--) {
+        soma += numeros.charAt(tamanho - i) * pos--;
+        if (pos < 2)
+              pos = 9;
+      }
+      resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+      if (resultado != digitos.charAt(0)){
+        $scope.taxIsUsed = true;
+        return false;
+      }
+           
+      tamanho = tamanho + 1;
+      numeros = cnpj.substring(0,tamanho);
+      soma = 0;
+      pos = tamanho - 7;
+      for (i = tamanho; i >= 1; i--) {
+        soma += numeros.charAt(tamanho - i) * pos--;
+        if (pos < 2)
+              pos = 9;
+      }
+      resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+      if (resultado != digitos.charAt(1)){
+        $scope.taxIsUsed = true;
+        return false;
+      }
+             
+      return true;
+    }
+
+    $scope.validadeEmail = function(x) {
+      var atpos = x.indexOf("@");
+      var dotpos = x.lastIndexOf(".");
+      if (atpos<1 || dotpos<atpos+2 || dotpos+2>=x.length) {
+        $scope.emailIsUsed = true;
+        return false;
+      }
     }
 
     $scope.insertCustomer = function(insCustomer) { 

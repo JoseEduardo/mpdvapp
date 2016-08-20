@@ -19,13 +19,14 @@
                     </div>
                     <button ng-click="showBarCodeRTC = false" style="width:50% !important; display:inline;" class=" button button-balanced  button-block ">CANCELAR</button>
                 </div>
+
                 <div ng-controller="vendaCtrl" ng-show="!showBarCodeRTC">
                     <div ng-controller="vendaCtrl">
-                      <input  ng-disabled="closedOrder == 'S'" ng-model="barcodeNumber" ng-change="searchBarCode(barcodeNumber)" style="border:1px solid #ddd; display:inline; width: 50%; border-radius: 2px" type="text" name="barcode"><b>x</b>
+                      <input  ng-disabled="closedOrder == 'S'" ng-model="barcodeNumber" ng-change="searchBarCode(barcodeNumber, qtyProd)" style="border:1px solid #ddd; display:inline; width: 50%; border-radius: 2px" type="text" name="barcode"><b>x</b>
                       <input  ng-disabled="closedOrder == 'S'" ng-model="qtyProd" style="border:1px solid #ddd; display:inline; width: 45%; border-radius: 2px" type="text" name="qt">
                       <button  ng-disabled="closedOrder == 'S'" ng-show="!currentItem" id="venda-button16" style="width:48% !important; display:inline;" ng-controller="barcodeCtrl" ng-click="scanBarcode()" class="button button-positive button-block ">SCAN</button>
-                      <button  ng-disabled="closedOrder == 'S'" ng-show="currentItem" id="venda-button18" style="width:48% !important; display:inline;" ng-click="addToCart()" class="button button-positive button-block ">ADICIONAR</button>
-                      <button  ng-disabled="closedOrder == 'S'" id="venda-button11" ng-click="showPayMenu()" style="width:50% !important; display:inline;" class=" button button-balanced  button-block ">FINALIZAR</button>
+                      <button  ng-disabled="closedOrder == 'S'" ng-show="currentItem" id="venda-button18" style="width:48% !important; display:inline;" ng-click="addToCart(); barcodeNumber = ''" class="button button-positive button-block ">ADICIONAR</button>
+                      <button  ng-disabled="closedOrder == 'S' || cartItens.length <= 0" id="venda-button11" ng-click="showPayMenu()" style="width:50% !important; display:inline;" class=" button button-balanced  button-block ">FINALIZAR</button>
 
                       <div ng-show="imageProd1" ng-click="imageProd1 = null;">
                           <img ng-src="{{imageProd1}}" alt="product" style="width:100%; height: 100%">
@@ -49,6 +50,7 @@
                               </ion-item-sliding>
                           </ion-list>
                       </div>
+
                     </div>
                     <div ng-show="loadMode">
                       <button id="venda-button11" ng-controller="printCtrl" ng-click="cancelLoad()" class="  button button-assertive  button-block  ">CANCELAR EDIÇÃO</button>
@@ -188,7 +190,7 @@
         <ion-item>
             <button ng-show="loadMode" ng-click="setPayMethod(PaymentMethod, 'UPDT')" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">ATUALIZAR</button>
             <button ng-show="!loadMode" ng-click="setPayMethod(PaymentMethod, 'INS')" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">CONFIRMAR</button>
-            <button ng-click="modalMethods.hide()" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">CANCELAR</button>
+            <button ng-click="modalMethods.hide()" style="width:49% !important; display:inline;" class="  button button-assertive  button-block  ">CANCELAR</button>
         </ion-item>
       </ion-content>
     </ion-modal-view>

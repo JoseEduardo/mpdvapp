@@ -36,22 +36,22 @@
                 <div class = "input-label">
                     Grp de Cli.
                 </div>
-                <select ng-model="insCustomer.CustomerGroup.value" ng-options="item.CODE for item in groupscustomer">
+                <select ng-model="insCustomer.CustomerGroup.value" ng-options="item.MTP_DESC for item in groupscustomer">
                  <option value="">Escolha um grupo</option>
                 </select>
             </label> 
             <div ng-show="insCustomer.CustomerTipPess.value.id == 'pf'" >
                 <label class="item item-input " id="cpf">
-                    <input type="text" ng-model="insCustomer.cpf" ng-change="checkCustomer(insCustomer.cpf)" placeholder="Insira o CPF"></input>
+                    <input type="text" ng-model="insCustomer.cpf" ng-change="checkCustomer(insCustomer.cpf)" ng-blur="validadeCPF(insCustomer.cpf)" placeholder="Insira o CPF"></input>
                 </label>
             </div>
             <div ng-show="insCustomer.CustomerTipPess.value.id == 'pj'" >
                 <label class="item item-input " id="cnpj">
-                    <input type="text" ng-model="insCustomer.cnpj" ng-change="checkCustomer(insCustomer.cpf)" placeholder="Insira o CNPJ"></input>
+                    <input type="text" ng-model="insCustomer.cnpj" ng-change="checkCustomer(insCustomer.cnpj)" ng-blur="validadeCNPJ(insCustomer.cnpj)" placeholder="Insira o CNPJ"></input>
                 </label>
             </div>
             <label class="item item-input " id="email">
-                <input type="email" ng-model="insCustomer.email" ng-change="checkCustomerEmail(insCustomer.email)" placeholder="Insira o Email" required></input>
+                <input type="email" ng-model="insCustomer.email" ng-change="checkCustomerEmail(insCustomer.email)" ng-blur="validadeEmail(insCustomer.email)" placeholder="Insira o Email" required></input>
             </label>
             <label class="item item-input " id="firstname">
                 <input type="text" ng-model="insCustomer.firstname" placeholder="Insira o Primeiro Nome"></input>
@@ -103,13 +103,13 @@
 
         <ion-item>
             <div ng-show="taxIsUsed">
-                CPF/CNPJ em uso.
+                CPF/CNPJ inválido.
             </div>
             <div ng-show="emailIsUsed">
-                Email em uso.
+                Email inválido.
             </div>
             <button ng-disabled="taxIsUsed || emailIsUsed" ng-click="insertCustomer(insCustomer)" style="width:49% !important; display:inline;" class=" button button-balanced  button-block ">CONFIRMAR</button>
-            <button ng-click="" style="width:49% !important; display:inline;" class=" button button-assertive  button-block ">Cancelar</button>
+            <button ng-click="cancelInsertCustomer()" style="width:49% !important; display:inline;" class=" button button-assertive  button-block ">Cancelar</button>
         </ion-item>
       </ion-content>
     </ion-modal-view>
