@@ -277,7 +277,6 @@ angular.module('app.controllers', [])
           }
 
           if( resultCustomer.ID_CUSTOMER <= 0 ){
-            console.log(resultCustomer);
             customerAddressFactory.select(resultCustomer.ID).then(function(resultCAddress) {
               var params = {
                   WS_URL: result.WS_URL, 
@@ -290,9 +289,14 @@ angular.module('app.controllers', [])
                   ADDRESS: resultCAddress,
                   CUSTOMER: resultCustomer,
                   PRODUCT: prodOrder
-              };   
-              console.log( JSON.stringify(params)  );
-              $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
+              };
+              console.log( JSON.stringify(params) );
+              $http.post(URLPHPCTRL + '/orders.php', params)
+              .error(function (data, status, headers, config) {
+                $rootScope.showInterface = true;
+                alert( 'Ocorreu um erro ao se conectar com o Servidor.' );
+              })
+              .then(function (res){
                 salesOrderFactory.checkOrder(OrderAt.ID).then(function(x) {
                   $rootScope.loadAllOrders();
                   $rootScope.showInterface = true;
@@ -311,15 +315,19 @@ angular.module('app.controllers', [])
                 ADDRESS_ID: OrderAt.CUSTOMER_ADDRESS_ID,
                 CUSTOMER: resultCustomer,
                 PRODUCT: prodOrder
-            };   
-            console.log(OrderAt);
+            };
             console.log( JSON.stringify(params) );
-            $http.post(URLPHPCTRL + '/orders.php', params).then(function (res){
-              salesOrderFactory.checkOrder(OrderAt.ID).then(function(x) {
-                $rootScope.loadAllOrders();
+            $http.post(URLPHPCTRL + '/orders.php', params)
+              .error(function (data, status, headers, config) {
                 $rootScope.showInterface = true;
-              });
-            });                 
+                alert( 'Ocorreu um erro ao se conectar com o Servidor.' );
+              })
+              .then(function (res){
+                salesOrderFactory.checkOrder(OrderAt.ID).then(function(x) {
+                  $rootScope.loadAllOrders();
+                  $rootScope.showInterface = true;
+                });
+              });                 
           }
           deferred.resolve();
         });
@@ -391,7 +399,6 @@ angular.module('app.controllers', [])
               for (var i = 0; i <= data.length-1; i++) {
                 var address = data[i].address;
                 customerGroupFactory.insert(data[i].customer_group_id, data[i].customer_group_code).then(function(result) {
-                console.log('aaa');
                 });
               };
 
@@ -449,7 +456,6 @@ angular.module('app.controllers', [])
       var deferred = $q.defer();
       productFactory.select(sku, $rootScope.customer[0].GROUP_ID).then(function(result) {
         $rootScope.currentItem = result;
-        console.log($rootScope.currentItem);
         if(qty){
           $rootScope.qtyProd = qty;
         }else{
@@ -487,15 +493,12 @@ angular.module('app.controllers', [])
       }
 
       if(itemEx == false){
-        console.log( $rootScope.currentItem );
         $rootScope.currentItem.QTY = $rootScope.qtyProd;
         $rootScope.cartItens.push($rootScope.currentItem);
 
         $rootScope.totCar += Number($rootScope.currentItem.QTY)*Number($rootScope.currentItem.PRICE);
-      }
-console.log( $rootScope.barcodeNumber );
+      };
       $rootScope.barcodeNumber = "";
-console.log( $rootScope.barcodeNumber );
       $rootScope.currentItem = null;
       $rootScope.imageProd1 = null;
       $rootScope.imageProd1Edt = null;
@@ -580,7 +583,7 @@ console.log( $rootScope.barcodeNumber );
 
 
     $scope.placeOrder = function() {
-      salesOrderFactory.insert($rootScope.customer[0].ID_CUSTOMER, $rootScope.customer[0].FIRSTNAME, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.PaymentMethod.value.MTP_DESC, $rootScope.PaymentMethod.value.ID, $rootScope.totCar, 'N').then(function(result){
+      salesOrderFactory.insert($rootScope.customer[0].ID, $rootScope.customer[0].FIRSTNAME, $rootScope.addressCustomer[0].CUSTOMER_ADDRESS_ID, 'pedroteixeira_correios_41068', $rootScope.PaymentMethod.value.MTP_DESC, $rootScope.PaymentMethod.value.ID, $rootScope.totCar, 'N').then(function(result){
         for (var i = 0; i <= $rootScope.cartItens.length - 1; i++) {
           salesOrderItemFactory.insert(result, $rootScope.cartItens[i].PRODUCT_ID, $rootScope.cartItens[i].SKU, $rootScope.cartItens[i].PRICE, $rootScope.cartItens[i].NAME, $rootScope.cartItens[i].QTY);
         };
@@ -622,7 +625,6 @@ console.log( $rootScope.barcodeNumber );
         $rootScope.imageProd1 = fileDeviceDir + "magepdv/" + id_product + "/1.jpg";
         $rootScope.imageProd1Edt = fileDeviceDir + "magepdv/" + id_product + "/1.jpg";  
       }
-console.log( $rootScope.imageProd1 );
     };
 
     $ionicModal.fromTemplateUrl('editcart.html', {
@@ -659,7 +661,6 @@ console.log( $rootScope.imageProd1 );
     });
 
     $scope.setPayMethod = function(metd, type) {
-      console.log(metd);
       $rootScope.PaymentMethod = metd;
       $scope.modalMethods.hide();
 
@@ -692,7 +693,6 @@ console.log( $rootScope.imageProd1 );
           $rootScope.cartItens = [];
           $rootScope.customer.push($scope.currentItem);
           customerAddressFactory.select(result['ID']).then(function(result) {
-            console.log(result);
             $rootScope.addressCustomer = [];
             $rootScope.addressCustomer.push(result);
           });
@@ -740,9 +740,7 @@ console.log( $rootScope.imageProd1 );
 //      var networkState = navigator.connection.type;
 
       if( navigator.onLine && CEP != "" ){
-        console.log(CEP);
           $.getScript("http://cep.republicavirtual.com.br/web_cep.php?formato=javascript&cep="+CEP, function(){
-              console.log( resultadoCEP["cidade"] );
               //if(resultadoCEP["cidade"]){
                   $rootScope.insCustomer.street = unescape(resultadoCEP["tipo_logradouro"])+": "+unescape(resultadoCEP["logradouro"]);
                   $rootScope.insCustomer.neighborhood = unescape(resultadoCEP["bairro"]);
@@ -805,6 +803,7 @@ console.log( $rootScope.imageProd1 );
     }
 
     $scope.validadeCPF = function(cpf) {
+      if( cpf == "" ) return false;
       cpf = cpf.replace(/[^\d]+/g,'');    
       // Elimina CPFs invalidos conhecidos    
       if (cpf.length != 11 || 
@@ -847,6 +846,8 @@ console.log( $rootScope.imageProd1 );
     }
 
     $scope.validadeCNPJ = function(cnpj) {
+      if( cnpj == "" ) return false;
+
       cnpj = cnpj.replace(/[^\d]+/g,'');
       if (cnpj.length != 14){
           $scope.taxIsUsed = true;
@@ -903,12 +904,13 @@ console.log( $rootScope.imageProd1 );
       return true;
     }
 
-    $scope.validadeEmail = function(x) {
-      var atpos = x.indexOf("@");
-      var dotpos = x.lastIndexOf(".");
-      if (atpos<1 || dotpos<atpos+2 || dotpos+2>=x.length) {
+    $scope.validadeEmail = function(email) {
+      var filter = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+
+      if (!filter.test(email)) {
         $scope.emailIsUsed = true;
-        return false;
+      }else{
+        $scope.emailIsUsed = false;
       }
     }
 
@@ -922,7 +924,7 @@ console.log( $rootScope.imageProd1 );
           insCustomer.taxvat = insCustomer.cnpj;
         }
 
-        customerFactory.insertSingle('-1', insCustomer.CustomerGroup.value.GROUP_ID, insCustomer.firstname, insCustomer.lastname, insCustomer.email, insCustomer.taxvat, '-1', insCustomer.CustomerTipPess.value.id).then(function(result) {
+        customerFactory.insertSingle('-1', insCustomer.CustomerGroup.value.MTP_ID, insCustomer.firstname, insCustomer.lastname, insCustomer.email, insCustomer.taxvat, '-1', insCustomer.CustomerTipPess.value.id).then(function(result) {
           customerAddressFactory.insertComp(result, insCustomer.street, insCustomer.region, insCustomer.number, insCustomer.comment, insCustomer.neighborhood, insCustomer.city, insCustomer.cep, insCustomer.tel).then(function(result) {
             alert('Cliente inserido com sucesso.');
             $scope.insCustomer = [];
@@ -981,8 +983,7 @@ console.log( $rootScope.imageProd1 );
 
                     if( result != null ){
                       $rootScope.customer.push($rootScope.currentItem);
-                      customerAddressFactory.select(result['ID']).then(function(result) {
-                        console.log(result);
+                      customerAddressFactory.select(result['ID']).then(function(result) {;
                         $rootScope.addressCustomer = [];
                         $rootScope.addressCustomer.push(result);
 
@@ -1057,7 +1058,6 @@ console.log( $rootScope.imageProd1 );
     $rootScope.showBarCodeRTC = false;
     $rootScope.barcodeNumber = "";
     $scope.scanBarcode = function() {
-      console.log($rootScope.conn.BARCODE);
         if( $rootScope.conn.BARCODE == "Barcode Advanced" ){
           $rootScope.showBarCodeRTC = true;
           
@@ -1073,17 +1073,13 @@ console.log( $rootScope.imageProd1 );
             barcode.init();
 
             jQuery('#result').bind('DOMSubtreeModified', function(e) {
-              alet('asasdasdads');
-              console.log('asdasdasdasd'); 
             });
 
           });
         }else{
           $cordovaBarcodeScanner.scan().then(function(imageData) {
               $rootScope.barcodeNumber = imageData.text;
-              console.log($rootScope.barcodeNumber);
           }, function(error) {
-              console.log(error);
           });
           
         }

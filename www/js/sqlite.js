@@ -251,7 +251,7 @@ sqlite.factory('customerFactory', function($cordovaSQLite, $rootScope, customerA
       );
     },
     selectById : function(searchData){
-      var query = "SELECT * FROM CUSTOMER WHERE ID_CUSTOMER = '"+searchData+"'"; 
+      var query = "SELECT * FROM CUSTOMER WHERE ID = '"+searchData+"'"; 
 
       return $cordovaSQLite.execute(db, query).then(
         function(res) {
@@ -265,7 +265,7 @@ sqlite.factory('customerFactory', function($cordovaSQLite, $rootScope, customerA
       );
     },
     selectByIdCustomer : function(searchData){
-      var query = "SELECT * FROM CUSTOMER WHERE ID = '"+searchData+"'"; 
+      var query = "SELECT * FROM CUSTOMER WHERE ID_CUSTOMER = '"+searchData+"'"; 
 
       return $cordovaSQLite.execute(db, query).then(
         function(res) {
@@ -480,7 +480,7 @@ sqlite.factory('salesOrderFactory', function($cordovaSQLite) {
       );
     },
     selectWithData : function(){
-      var query = "SELECT SSD.*, CUS.FIRSTNAME, CUS.EMAIL FROM SALESORDER SSD INNER JOIN CUSTOMER CUS WHERE SSD.CUSTOMER_ID = CUS.ID_CUSTOMER"; 
+      var query = "SELECT SSD.*, CUS.FIRSTNAME, CUS.EMAIL FROM SALESORDER SSD INNER JOIN CUSTOMER CUS WHERE SSD.CUSTOMER_ID = CUS.ID"; 
 
       return $cordovaSQLite.execute(db, query).then(
         function(res) {
