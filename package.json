@@ -22,12 +22,23 @@
     "cordova-plugin-statusbar",
     "ionic-plugin-keyboard",
     {
-      "locator": "https://github.com/brodysoft/Cordova-SQLitePlugin.git",
-      "id": "cordova-sqlite-storage"
+      "locator": "https://github.com/wildabeast/BarcodeScanner.git",
+      "id": "phonegap-plugin-barcodescanner"
     },
-    "cordova-plugin-crosswalk-webview"
+    "cordova-sqlite-storage",
+    "cordova-plugin-file",
+    "cordova-plugin-compat",
+    "cordova-plugin-file-transfer",
+    "de.appplant.cordova.plugin.printer",
+    "cordova-plugin-crosswalk-webview",
+    "cordova-plugin-network-information"
   ],
   "cordovaPlatforms": [
-    "android"
+    "android",
+    {
+      "platform": "android",
+      "version": "",
+      "locator": "android"
+    }
   ]
 }
