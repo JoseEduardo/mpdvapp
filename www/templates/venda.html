@@ -38,7 +38,11 @@
                                   Estoque indisponivel
                               </p>
                           </div>
-                          <p id="venda-markdown2" style="color:#000000;" class=" ">{{cartItens.length}} itens no Carrinho - {{ totCar | currency:"R$" }}</p>
+                          <p id="venda-markdown2" style="color:#000000;" class=" ">{{cartItens.length}} itens no Carrinho - 
+                            <span style="margin-left: 48%; border-radius: 3px; background: #fb806a; color:white">
+                              <b style="margin-left: 2px; margin-right: 2px;"> {{ totCar | currency:"R$" }} </b>
+                            </span>
+                          </p>
                           <ion-list>
                               <ion-item-sliding ng-repeat="x in cartItens">
                                   <ion-item class="item-icon-right">
