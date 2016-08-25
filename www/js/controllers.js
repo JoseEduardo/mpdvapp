@@ -138,7 +138,7 @@ angular.module('app.controllers', [])
       ionic.Platform.ready(function(){
         $scope.loadConfiguration();
         salesOrderFactory.countUnprocessed().then(function(result) {
-          $scope.countOrders = result.TOTORDER;
+          $rootScope.countOrders = result.TOTORDER;
         });
       });
     }
@@ -294,12 +294,13 @@ angular.module('app.controllers', [])
               $http.post(URLPHPCTRL + '/orders.php', params)
               .error(function (data, status, headers, config) {
                 $rootScope.showInterface = true;
-                alert( 'Ocorreu um erro ao se conectar com o Servidor.' );
               })
               .then(function (res){
                 salesOrderFactory.checkOrder(OrderAt.ID).then(function(x) {
-                  $rootScope.loadAllOrders();
+                  $rootScope.ordersRel = resultOrder;
                   $rootScope.showInterface = true;
+                  $rootScope.expOrder += 1;
+                  $rootScope.countOrders -= 1;
                 });
               }); 
             });
@@ -320,12 +321,12 @@ angular.module('app.controllers', [])
             $http.post(URLPHPCTRL + '/orders.php', params)
               .error(function (data, status, headers, config) {
                 $rootScope.showInterface = true;
-                alert( 'Ocorreu um erro ao se conectar com o Servidor.' );
               })
               .then(function (res){
                 salesOrderFactory.checkOrder(OrderAt.ID).then(function(x) {
-                  $rootScope.loadAllOrders();
                   $rootScope.showInterface = true;
+                  $rootScope.expOrder += 1;
+                  $rootScope.countOrders -= 1;
                 });
               });                 
           }
@@ -341,6 +342,19 @@ angular.module('app.controllers', [])
 
         salesOrderFactory.selectOnlyUnprocessed().then(function(resultOrder) {
           if(resultOrder){
+            $rootScope.impCustomerAtual = "";
+            $rootScope.impCustomerTot = "";
+
+            $rootScope.impProdTot = "";
+            $rootScope.impProdAtual = "";
+            $rootScope.impProdStatus = "";
+            $rootScope.showInterface = true;
+
+            $rootScope.expOrder = 0;
+            $rootScope.expOrderTot = resultOrder.length;
+
+            $rootScope.expOrderStatus = "Exportando Vendas...";
+
             for (var i = 0; i <= resultOrder.length-1; i++) {
               $rootScope.exportSpecificOrder( result, resultOrder[i] );
             };
@@ -475,7 +489,9 @@ angular.module('app.controllers', [])
       return deferred.promise;
     };
 
-    $rootScope.addToCart = function() {
+    $rootScope.addToCart = function(qtyProduct) { 
+      $rootScope.qtyProd = qtyProduct;
+
       var itemEx = false;
       $rootScope.totCar = 0;
       for(i = 0; i < $rootScope.cartItens.length; i++) { 

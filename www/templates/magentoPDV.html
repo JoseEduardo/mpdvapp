@@ -10,9 +10,9 @@
             <div ng-show="!showInterface">
                 {{impProdAtual.value}}
                 <img style="margin-left: 25%" src="img/spinner.gif" alt="loading" height="150" width="180">
-                <h4 style="color:#000000;text-align:center;" >{{impCustomerStatus}}{{impProdStatus}}</h4>
+                <h4 style="color:#000000;text-align:center;" >{{expOrderStatus}}{{impCustomerStatus}}{{impProdStatus}}</h4>
                 <h4 style="color:#000000;text-align:center;" >
-                    {{testeNum.value}}{{impProdAtual}}{{impCustomerAtual}}/{{impProdTot}}{{impCustomerTot}}</h4>
+                    {{expOrder}}{{impProdAtual}}{{impCustomerAtual}}/{{impProdTot}}{{impCustomerTot}}{{expOrderTot}}</h4>
             </div>
             <div ng-show="getNetState()">
                 <div ng-show="showInterface">

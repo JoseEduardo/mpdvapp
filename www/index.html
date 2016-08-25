@@ -5,10 +5,6 @@
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
     <title></title>
    
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="msapplication-tap-highlight" content="no">
-    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
     <script src="lib/ionic/js/ionic.bundle.js"></script>
     <!-- cordova script (this will be a 404 during development) -->
     <script src="cordova.js"></script>
@@ -94,7 +90,7 @@
                     <label class="item item-input " id="menu-input10" data-componentid="input10">
                         <input type="text" ng-model="conn.STORE_ID" placeholder="Codigo da Loja">
                     </label>
-                    <!--ion-item>
+                    <ion-item>
                         <label class="item item-input item-select">
                             <div class="input-label">
                                 Cod Bar
@@ -102,7 +98,7 @@
                             <select ng-model="conn.BARCODE" ng-options="item for item in barcodesOpts">
                             </select>
                         </label>    
-                    </ion-item-->          
+                    </ion-item>          
                     <button id="venda-button11" ng-click="saveConfiguration()" class=" button button-balanced  button-block ">SALVAR</button>
                 </form>
             </ion-content>

@@ -25,7 +25,7 @@
                       <input  ng-disabled="closedOrder == 'S'" ng-model="barcodeNumber" ng-change="searchBarCode(barcodeNumber, qtyProd)" style="border:1px solid #ddd; display:inline; width: 50%; border-radius: 2px" type="text" name="barcode"><b>x</b>
                       <input  ng-disabled="closedOrder == 'S'" ng-model="qtyProd" style="border:1px solid #ddd; display:inline; width: 45%; border-radius: 2px" type="text" name="qt">
                       <button  ng-disabled="closedOrder == 'S'" ng-show="!currentItem" id="venda-button16" style="width:48% !important; display:inline;" ng-controller="barcodeCtrl" ng-click="scanBarcode()" class="button button-positive button-block ">SCAN</button>
-                      <button  ng-disabled="closedOrder == 'S'" ng-show="currentItem" id="venda-button18" style="width:48% !important; display:inline;" ng-click="addToCart(); barcodeNumber = ''" class="button button-positive button-block ">ADICIONAR</button>
+                      <button  ng-disabled="closedOrder == 'S'" ng-show="currentItem" id="venda-button18" style="width:48% !important; display:inline;" ng-click="addToCart(qtyProd); barcodeNumber = ''" class="button button-positive button-block ">ADICIONAR</button>
                       <button  ng-disabled="closedOrder == 'S' || cartItens.length <= 0" id="venda-button11" ng-click="showPayMenu()" style="width:50% !important; display:inline;" class=" button button-balanced  button-block ">FINALIZAR</button>
 
                       <div ng-show="imageProd1" ng-click="imageProd1 = null;">
@@ -38,8 +38,9 @@
                                   Estoque indisponivel
                               </p>
                           </div>
-                          <p id="venda-markdown2" style="color:#000000;" class=" ">{{cartItens.length}} itens no Carrinho - 
-                            <span style="margin-left: 48%; border-radius: 3px; background: #fb806a; color:white">
+                          <p id="venda-markdown2" style="color:#000000;" class=" ">{{cartItens.length}} itens no Carrinho</p>
+                          <p ng-show="totCar" style="font-size: 150%;">
+                            <span style="border-radius: 3px; background: #fb806a; color:white; margin:0px">
                               <b style="margin-left: 2px; margin-right: 2px;"> {{ totCar | currency:"R$" }} </b>
                             </span>
                           </p>

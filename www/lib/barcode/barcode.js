@@ -1,5 +1,18 @@
 var barcode = function() {
 
+ 	var UPC_SET = {
+        "3211": '0',
+        "2221": '1',
+        "2122": '2',
+        "1411": '3',
+        "1132": '4',
+        "1231": '5',
+        "1114": '6',
+        "1312": '7',
+        "1213": '8',
+        "3112": '9'
+    };
+
 	var localMediaStream = null;
 	var bars = [];
 	var handler = null;
@@ -19,31 +32,6 @@ var barcode = function() {
 		ctxg: null	
 	}
 
-	var upc = {
-		'0': [3, 2, 1, 1],
-		'1': [2, 2, 2, 1],
-		'2': [2, 1, 2, 2],
-		'3': [1, 4, 1, 1],
-		'4': [1, 1, 3, 2],
-		'5': [1, 2, 3, 1],
-		'6': [1, 1, 1, 4],
-		'7': [1, 3, 1, 2],
-		'8': [1, 2, 1, 3],
-		'9': [3, 1, 1, 2]
-	};
-
-	var check = {
-		'oooooo': '0',
-		'ooeoee': '1',
-		'ooeeoe': '2',
-		'ooeeeo': '3',
-		'oeooee': '4',
-		'oeeooe': '5',
-		'oeeeoo': '6',
-		'oeoeoe': '7',
-		'oeoeeo': '8',
-		'oeeoeo': '9'
-	}
 
 	var config = {
 		strokeColor: '#f00',
@@ -98,215 +86,91 @@ var barcode = function() {
 
 	function snapshot() {
 		elements.ctx.drawImage(elements.video, 0, 0, dimensions.width, dimensions.height);
-		processImage();		
-	}
-
-	function processImage() {
-
-		bars = [];
-
-		var pixels = [];
-		var binary = [];
-		var pixelBars = [];
-
-		// convert to grayscale
- 
 		var imgd = elements.ctx.getImageData(dimensions.start, dimensions.height * 0.5, dimensions.end - dimensions.start, 1);
-		var rgbpixels = imgd.data;
-
-		for (var i = 0, ii = rgbpixels.length; i < ii; i = i + 4) {
-			pixels.push(Math.round(rgbpixels[i] * 0.2126 + rgbpixels[i + 1] * 0.7152 + rgbpixels[ i + 2] * 0.0722));
-		}
-
-		// normalize and convert to binary
-
-		var min = Math.min.apply(null, pixels);
-		var max = Math.max.apply(null, pixels);
-
-		for (var i = 0, ii = pixels.length; i < ii; i++) {
-			if (Math.round((pixels[i] - min) / (max - min) * 255) > config.threshold) {				
-				binary.push(1);
-			} else {
-				binary.push(0);
-			}
-		}
-		
-		// determine bar widths
-
-		var current = binary[0];
-		var count = 0;
-
-		for (var i = 0, ii = binary.length; i < ii; i++) {
-			if (binary[i] == current) {
-				count++;
-			} else {
-				pixelBars.push(count);
-				count = 1;
-				current = binary[i]
-			}
-		}
-		pixelBars.push(count);
-
-		// quality check
-
-		if (pixelBars.length < (3 + 24 + 5 + 24 + 3 + 1)) {
-			return;
-		}
-
-		// find starting sequence
-
-		var startIndex = 0;
-		var minFactor = 0.5;
-		var maxFactor = 1.5;
-
-		for (var i = 3, ii = pixelBars.length; i < ii; i++) {
-			var refLength = (pixelBars[i] + pixelBars[i-1] + pixelBars[i-2]) / 3;
-			if (
-				(pixelBars[i] > (minFactor * refLength) || pixelBars[i] < (maxFactor * refLength))
-				&& (pixelBars[i-1] > (minFactor * refLength) || pixelBars[i-1] < (maxFactor * refLength))
-				&& (pixelBars[i-2] > (minFactor * refLength) || pixelBars[i-2] < (maxFactor * refLength))
-				&& (pixelBars[i-3] > 3 * refLength)
-			) {
-				startIndex = i - 2;
-				break;
-			}
-		}
-
-		// return if no starting sequence found
-
-		if (startIndex == 0) {
-			return;
-		}
-
-		// discard leading and trailing patterns
-
-		pixelBars = pixelBars.slice(startIndex, startIndex + 3 + 24 + 5 + 24 + 3);
-
-		// calculate relative widths
-
-		var ref = (pixelBars[0] + pixelBars[1] + pixelBars[2]) / 3;
-		
-		for (var i = 0, ii = pixelBars.length; i < ii; i++) {
-			bars.push(Math.round(pixelBars[i] / ref * 100) / 100);
-		}
-
-		// analyze pattern
-
-		analyze();
-
-	}	
-
-	function analyze() {
-
-		// determine parity first digit and reverse sequence if necessary
-
-		var first = normalize(bars.slice(3, 3 + 4), 7);
-		if (!isOdd(Math.round(first[1] + first[3]))) {
-			bars = bars.reverse();
-		}
-
-		// split into digits
-
-		var digits = [
-			normalize(bars.slice(3, 3 + 4), 7),
-			normalize(bars.slice(7, 7 + 4), 7),
-			normalize(bars.slice(11, 11 + 4), 7),
-			normalize(bars.slice(15, 15 + 4), 7),
-			normalize(bars.slice(19, 19 + 4), 7),
-			normalize(bars.slice(23, 23 + 4), 7),
-			normalize(bars.slice(32, 32 + 4), 7),
-			normalize(bars.slice(36, 36 + 4), 7),
-			normalize(bars.slice(40, 40 + 4), 7),
-			normalize(bars.slice(44, 44 + 4), 7),
-			normalize(bars.slice(48, 48 + 4), 7),
-			normalize(bars.slice(52, 52 + 4), 7)
-		]
-
-		// determine parity and reverse if necessary
-
-		var parities = [];
-
-		for (var i = 0; i < 6; i++) {
-			if (parity(digits[i])) {
-				parities.push('o');
-			} else {
-				parities.push('e');
-				digits[i] = digits[i].reverse();
-			}
-		}		
-				
-		// identify digits
-		
-		var result = [];	
-		var quality = 0;
-
-		for (var i = 0, ii = digits.length; i < ii; i++) {
-
-			var distance = 9;
-			var bestKey = '';
-
-			for (key in upc) {
-				if (maxDistance(digits[i], upc[key]) < distance) {
-					distance = maxDistance(digits[i], upc[key]);
-					bestKey = key;
-				}	
-			}
-
-			result.push(bestKey);
-			if (distance > quality) {
-				quality = distance;
-			}
-		
-		}		
-
-		// check digit
-		
-		var checkDigit = check[parities.join('')];
-
-		// output
-
-		if(quality < config.quality) {
-			if (handler != null) {
-				handler(checkDigit + result.join(''));
-			}
-		}
-
+//		var rgbpixels = imgd.data;
+		processImage("barcodecanvasg");		
 	}
+
+	function processImage(imgOrId) {
+		console.log('processando');
+   		var doc = document,
+            img = "object" == typeof imgOrId ? imgOrId : doc.getElementById(imgOrId),
+            canvas = doc.createElement("canvas"),
+            width = img.width,
+            height = img.height,
+            ctx = canvas.getContext("2d"),
+            spoints = [1, 9, 2, 8, 3, 7, 4, 6, 5],
+            numLines = spoints.length,
+            slineStep = height / (numLines + 1),
+            round = Math.round;
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0);
+
+        while(numLines--){
+            console.log(spoints[numLines]);
+            var pxLine = ctx.getImageData(0, slineStep * spoints[numLines], width, 2).data,
+                sum = [],
+                min = 0,
+                max = 0;
+            for(var row = 0; row < 2; row++){
+                for(var col = 0; col < width; col++){
+                    var i = ((row * width) + col) * 4,
+                        g = ((pxLine[i] * 3) + (pxLine[i + 1] * 4) + (pxLine[i + 2] * 2)) / 9,
+                        s = sum[col];
+                    pxLine[i] = pxLine[i + 1] = pxLine[i + 2] = g;
+                    sum[col] = g + (undefined == s ? 0 : s);
+                }
+            }
+            for(var i = 0; i < width; i++){
+                var s = sum[i] = sum[i] / 2;
+                if(s < min){ min = s; }
+                if(s > max){ max = s; }
+            }
+            var pivot = min + ((max - min) / 2),
+                bmp = [];
+            for(var col = 0; col < width; col++){
+                var matches = 0;
+                for(var row = 0; row < 2; row++){
+                    if(pxLine[((row * width) + col) * 4] > pivot){ matches++; }
+                }
+                bmp.push(matches > 1);
+            }
+            var curr = bmp[0],
+                count = 1,
+                lines = [];
+            for(var col = 0; col < width; col++){
+                if(bmp[col] == curr){ count++; }
+                else{
+                    lines.push(count);
+                    count = 1;
+                    curr = bmp[col];
+                }
+            }
+            var code = '',
+                bar = ~~((lines[1] + lines[2] + lines[3]) / 3),
+                u = UPC_SET;
+            for(var i = 1, l = lines.length; i < l; i++){
+                if(code.length < 6){ var group = lines.slice(i * 4, (i * 4) + 4); }
+                else{ var group = lines.slice((i * 4 ) + 5, (i * 4) + 9); }
+                var digits = [
+                    round(group[0] / bar),
+                    round(group[1] / bar),
+                    round(group[2] / bar),
+                    round(group[3] / bar)
+                ];
+                code += u[digits.join('')] || u[digits.reverse().join('')] || 'X';
+                if(12 == code.length){ return code; break; }
+            }
+            if(-1 == code.indexOf('X')){ return code || false; }
+        }
+        return false;
+	}	
 
 	function setHandler(h) {
 		handler = h;
 	}
 
-	function normalize(input, total) {
-		var sum = 0;
-		var result = [];
-		for (var i = 0, ii = input.length; i < ii; i++) {
-			sum = sum + input[i];
-		}
-		for (var i = 0, ii = input.length; i < ii; i++) {
-			result.push(input[i] / sum * total);
-		}
-		return result;
-	}
-
-	function isOdd(num) { 
-		return num % 2;
-	}
-
-	function maxDistance(a, b) {
-		var distance = 0;
-		for (var i = 0, ii = a.length; i < ii; i++) {
-			if (Math.abs(a[i] - b[i]) > distance) {
-				distance = Math.abs(a[i] - b[i]);
-			}
-		}
-		return distance;
-	}
-
-	function parity(digit) {
-		return isOdd(Math.round(digit[1] + digit[3]));
-	}
-	
 	function drawGraphics() {
 		elements.ctxg.strokeStyle = config.strokeColor;
 		elements.ctxg.lineWidth = 3;
