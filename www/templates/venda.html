@@ -10,11 +10,8 @@
                 </div>
                 <div ng-controller="barcodeCtrl" ng-show="showBarCodeRTC">
                     <div>
-                      <div id="barcode">
-                          <canvas id="barcodecanvasg"  style="position: absolute; z-index: 99"></canvas>
-                          <video id="barcodevideo" autoplay  style="position: absolute; z-index: 97"></video>
+                      <div id="barcodeDiv">
                       </div>
-                      <canvas id="barcodecanvas" style="position: absolute; z-index: 98"></canvas>
                       <div id="result"></div>
                     </div>
                     <button ng-click="showBarCodeRTC = false" style="width:50% !important; display:inline;" class=" button button-balanced  button-block ">CANCELAR</button>

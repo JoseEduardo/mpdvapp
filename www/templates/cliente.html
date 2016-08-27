@@ -2,7 +2,7 @@
     <ion-content ng-controller="clienteCtrl" padding="true" class="has-header">
         <form id="cliente-form4" class="list ">
             <label class="item item-input " id="cliente-textarea3">
-                <input type="text" ng-model="customerDocument" ng-disabled="loadMode" placeholder="Email/CPF do Cliente" ng-change="searchCustomer(customerDocument)"></input>
+                <input type="text" ng-model="customerDocument.value" ng-disabled="loadMode" placeholder="Email/CPF do Cliente" ng-change="searchCustomer(customerDocument.value)"></input>
             </label>
         </form>
         <div>
@@ -42,12 +42,12 @@
             </label> 
             <div ng-show="insCustomer.CustomerTipPess.value.id == 'pf'" >
                 <label class="item item-input " id="cpf">
-                    <input type="text" ng-model="insCustomer.cpf" ng-change="checkCustomer(insCustomer.cpf)" ng-blur="validadeCPF(insCustomer.cpf)" placeholder="Insira o CPF"></input>
+                    <input type="text" maxlength="11" ng-model="insCustomer.cpf" ng-change="checkCustomer(insCustomer.cpf)" ng-blur="validadeCPF(insCustomer.cpf)" placeholder="Insira o CPF"></input>
                 </label>
             </div>
             <div ng-show="insCustomer.CustomerTipPess.value.id == 'pj'" >
                 <label class="item item-input " id="cnpj">
-                    <input type="text" ng-model="insCustomer.cnpj" ng-change="checkCustomer(insCustomer.cnpj)" ng-blur="validadeCNPJ(insCustomer.cnpj)" placeholder="Insira o CNPJ"></input>
+                    <input type="text" maxlength="14" ng-model="insCustomer.cnpj" ng-change="checkCustomer(insCustomer.cnpj)" ng-blur="validadeCNPJ(insCustomer.cnpj)" placeholder="Insira o CNPJ"></input>
                 </label>
             </div>
             <label class="item item-input " id="email">
@@ -60,13 +60,13 @@
                 <input type="text" ng-model="insCustomer.lastname" placeholder="Insira o Segundo Nome"></input>
             </label>
             <label class="item item-input " id="tel">
-                <input type="text" ng-model="insCustomer.tel" placeholder="Insira o Telefone"></input>
+                <input type="text" ng-model="insCustomer.tel" placeholder="Insira o Telefone" maxlength="11"></input>
             </label>
         </ion-item>
 
         <ion-item>
             <label class="item item-input " id="cep">
-                <input type="text" ng-blur="getCEP(insCustomer.cep)" ng-model="insCustomer.cep" placeholder="Insira o Cep"></input>
+                <input type="text" ng-blur="getCEP(insCustomer.cep)" ng-model="insCustomer.cep" placeholder="Insira o Cep" maxlength="8"></input>
             </label>
 
             <label class="item item-input " id="city">

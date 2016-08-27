@@ -10,12 +10,12 @@ angular.module('app.controllers', [])
     $rootScope.conn = [];
     $rootScope.countProd = 0;
 
-    $rootScope.impCustomerTot = 0;
-    $rootScope.impCustomerAtual = 0;
+    $rootScope.procTotal = 0;
+    $rootScope.procAtual = 0;
     $rootScope.impCustomerStatus = "";
 
-    $rootScope.impProdTot = 0;
-    $rootScope.impProdAtual = 0;
+    $rootScope.procTotal = 0;
+    $rootScope.procAtual = 0;
     $rootScope.impProdStatus = "";
 
     $rootScope.conn.WS_URL = "";
@@ -202,11 +202,8 @@ angular.module('app.controllers', [])
           .success(function (data, status, headers, config) {
             productFactory.deleteAll();
 
-            $rootScope.impCustomerAtual = "";
-            $rootScope.impCustomerTot = "";
-
-            $rootScope.impProdTot = data.length;
-            $rootScope.impProdAtual = 0;
+            $rootScope.procTotal = data.length;
+            $rootScope.procAtual = 0;
             $rootScope.impProdStatus = "Importando Produtos aguarde.";
             for (var i = 0; i <= data.length-1; i++) {
               $scope.saveProduct(data[i], result.IMG_IMP);
@@ -214,11 +211,11 @@ angular.module('app.controllers', [])
 
           })
           .error(function (data, status, headers, config) {
-            $rootScope.impCustomerAtual = "";
-            $rootScope.impCustomerTot = "";
+            $rootScope.procAtual = "";
+            $rootScope.procTotal = "";
 
-            $rootScope.impProdTot = "";
-            $rootScope.impProdAtual = 0;
+            $rootScope.procTotal = "";
+            $rootScope.procAtual = 0;
             $rootScope.impProdStatus = "";
             $rootScope.showInterface = true;
             alert( 'Ocorreu um erro ao se conectar com o Servidor.' );
@@ -252,13 +249,13 @@ angular.module('app.controllers', [])
 
         $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
           .then(function(result) {
-            $rootScope.impProdAtual += 1;
-            if($rootScope.impProdAtual >= $rootScope.impProdTot){
+            $rootScope.procAtual += 1;
+            if($rootScope.procAtual >= $rootScope.procTotal){
               $rootScope.showInterface = true;
             }
           }, function(err) {
-            $rootScope.impProdAtual += 1;
-            if($rootScope.impProdAtual >= $rootScope.impProdTot){
+            $rootScope.procAtual += 1;
+            if($rootScope.procAtual >= $rootScope.procTotal){
               $rootScope.showInterface = true;
             }
           }, function (progress) {
@@ -299,7 +296,7 @@ angular.module('app.controllers', [])
                 salesOrderFactory.checkOrder(OrderAt.ID).then(function(x) {
                   $rootScope.ordersRel = resultOrder;
                   $rootScope.showInterface = true;
-                  $rootScope.expOrder += 1;
+                  $rootScope.procAtual += 1;
                   $rootScope.countOrders -= 1;
                 });
               }); 
@@ -325,7 +322,7 @@ angular.module('app.controllers', [])
               .then(function (res){
                 salesOrderFactory.checkOrder(OrderAt.ID).then(function(x) {
                   $rootScope.showInterface = true;
-                  $rootScope.expOrder += 1;
+                  $rootScope.procAtual += 1;
                   $rootScope.countOrders -= 1;
                 });
               });                 
@@ -342,18 +339,18 @@ angular.module('app.controllers', [])
 
         salesOrderFactory.selectOnlyUnprocessed().then(function(resultOrder) {
           if(resultOrder){
-            $rootScope.impCustomerAtual = "";
-            $rootScope.impCustomerTot = "";
+            $rootScope.procAtual = "";
+            $rootScope.procTotal = "";
 
-            $rootScope.impProdTot = "";
-            $rootScope.impProdAtual = "";
+            $rootScope.procTotal = "";
+            $rootScope.procAtual = "";
             $rootScope.impProdStatus = "";
             $rootScope.showInterface = true;
 
-            $rootScope.expOrder = 0;
-            $rootScope.expOrderTot = resultOrder.length;
+            $rootScope.procAtual = 0;
+            $rootScope.procAtualTot = resultOrder.length;
 
-            $rootScope.expOrderStatus = "Exportando Vendas...";
+            $rootScope.procAtualStatus = "Exportando Vendas...";
 
             for (var i = 0; i <= resultOrder.length-1; i++) {
               $rootScope.exportSpecificOrder( result, resultOrder[i] );
@@ -374,6 +371,8 @@ angular.module('app.controllers', [])
         configurationFactory.select().then(function(result) {
           var params = 'WS_URL='+result.WS_URL+'&WS_USER='+result.WS_LOGIN+'&WS_PASSWORD='+result.WS_PASS;
           $rootScope.showInterface = false;
+          $rootScope.procAtual = 0;
+          $rootScope.procTotal = 0;
           $rootScope.impCustomerStatus = "Conectando com o Servidor.";
           
           $http.get(URLPHPCTRL + '/customers.php?'+ params )
@@ -381,12 +380,9 @@ angular.module('app.controllers', [])
               customerFactory.deleteAll();
               customerAddressFactory.deleteAll();
 
-              $rootScope.impProdTot = "";
-              $rootScope.impProdAtual = "";
-
               $rootScope.impCustomerStatus = 'Importando Clientes aguarde.';
-              $rootScope.impCustomerAtual = 0;
-              $rootScope.impCustomerTot = data.length;
+              $rootScope.procAtual = 0;
+              $rootScope.procTotal = data.length;
               for (var i = 0; i <= data.length-1; i++) {
                 var address = data[i].address;
                 $scope.processOneCustomer(data[i], data[i].address);
@@ -490,7 +486,7 @@ angular.module('app.controllers', [])
     };
 
     $rootScope.addToCart = function(qtyProduct) { 
-      $rootScope.qtyProd = qtyProduct;
+      $rootScope.qtyProd = qtyProduct == "" ? 1 : qtyProduct;
 
       var itemEx = false;
       $rootScope.totCar = 0;
@@ -554,6 +550,9 @@ angular.module('app.controllers', [])
     $rootScope.loadAllOrders = function (){
       ionic.Platform.ready(function(){
         salesOrderFactory.selectWithData().then(function(resultOrder) {
+          $rootScope.customerDocument = [];
+
+          $rootScope.totCar = "";
           $rootScope.ordersRel = resultOrder;
         });
       });
@@ -693,14 +692,14 @@ angular.module('app.controllers', [])
     $rootScope.customer = [];
     $rootScope.addressCustomer = [];
     $scope.currentItem = null;
-    $rootScope.customerDocument = "";
+    $rootScope.customerDocument = [];
     $scope.taxIsUsed = false;
 
     $rootScope.insCustomer = [];
 
     $rootScope.searchCustomer = function(email) {
       customerFactory.select(email).then(function(result) {
-        $rootScope.customerDocument = email;
+        $rootScope.customerDocument.value = email;
         $rootScope.customer = [];
         $rootScope.addressCustomer = [];
         $scope.currentItem = result;
@@ -819,7 +818,8 @@ angular.module('app.controllers', [])
     }
 
     $scope.validadeCPF = function(cpf) {
-      if( cpf == "" ) return false;
+      console.log(cpf);
+      if( cpf == "" || cpf == undefined ) return false;
       cpf = cpf.replace(/[^\d]+/g,'');    
       // Elimina CPFs invalidos conhecidos    
       if (cpf.length != 11 || 
@@ -949,8 +949,8 @@ angular.module('app.controllers', [])
           });
         });
 
-        $rootScope.customerDocument = insCustomer.taxvat;
-        $rootScope.searchCustomer($rootScope.customerDocument);
+        $rootScope.customerDocument.value = insCustomer.taxvat;
+        $rootScope.searchCustomer($rootScope.customerDocument.value);
         $scope.modalCadastro.hide();
       }
     }
@@ -989,13 +989,13 @@ angular.module('app.controllers', [])
                 if(resultOrderItem){
                   //load cliente
                   $state.go('tabsController.cliente');
-                  $rootScope.customerDocument = resultCustomer.EMAIL;
+                  $rootScope.customerDocument.value = resultCustomer.EMAIL;
 
                   customerFactory.select(resultCustomer.EMAIL).then(function(result) {
                     $rootScope.customer = [];
                     $rootScope.addressCustomer = [];
                     $rootScope.currentItem = result;
-                    $rootScope.customerDocument = resultCustomer.EMAIL;
+                    $rootScope.customerDocument.value = resultCustomer.EMAIL;
 
                     if( result != null ){
                       $rootScope.customer.push($rootScope.currentItem);
@@ -1078,17 +1078,77 @@ angular.module('app.controllers', [])
           $rootScope.showBarCodeRTC = true;
           
           ionic.Platform.ready(function(){
-            barcode.config.start = 0.1;
-            barcode.config.end = 0.9;
-            barcode.config.video = '#barcodevideo';
-            barcode.config.canvas = '#barcodecanvas';
-            barcode.config.canvasg = '#barcodecanvasg';
-            barcode.setHandler(function(barcode) {
-              jQuery('#result').html(barcode);
+            Quagga.init({
+                inputStream : {
+                  name : "Live",
+                  type : "LiveStream",
+                  constraints: {
+                    width: 240,
+                    height: 280,
+                    facingMode: "environment"
+                  },
+                  locator: {
+                    patchSize: "medium",
+                    halfSample: true
+                  },
+                  numOfWorkers: 8,
+                  locate: true,
+                  frequency: 10,
+                  debug: true,
+                  target: document.querySelector('#barcodeDiv')    // Or '#yourElement' (optional)
+                },
+                decoder : {
+                  readers :  [{
+                    format: "ean_reader",
+                    config: {
+                                supplements: [
+                                    'ean_5_reader', 'ean_2_reader'
+                                ]
+                            }
+                  }],
+                  debug: {
+                      drawBoundingBox: true,
+                      showFrequency: true,
+                      drawScanline: true,
+                      showPattern: true
+                  }
+                }
+              }, function(err) {
+                  if (err) {
+                      console.log(err);
+                      return
+                  }
+                  console.log("Initialization finished. Ready to start");
+                  Quagga.start();
             });
-            barcode.init();
 
-            jQuery('#result').bind('DOMSubtreeModified', function(e) {
+            Quagga.onProcessed(function(result) {
+              console.log(result);
+                var drawingCtx = Quagga.canvas.ctx.overlay,
+                    drawingCanvas = Quagga.canvas.dom.overlay;
+
+                if (result) {
+                    if (result.boxes) {
+                        drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
+                        result.boxes.filter(function (box) {
+                            return box !== result.box;
+                        }).forEach(function (box) {
+                            Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, {color: "green", lineWidth: 2});
+                        });
+                    }
+
+                    if (result.box) {
+                        Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, {color: "#00F", lineWidth: 2});
+                    }
+
+                    if (result.codeResult && result.codeResult.code) {
+                        Quagga.ImageDebug.drawPath(result.line, {x: 'x', y: 'y'}, drawingCtx, {color: 'red', lineWidth: 3});
+                    }
+                }
+            });
+
+            Quagga.onDetected(function(result) {
+              console.log(result);
             });
 
           });

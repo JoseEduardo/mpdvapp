@@ -8,11 +8,10 @@
             <h4 id="magentoPDV-heading4" ng-init="getAllOrders()" style="color:#000000;text-align:center;" class=" ">{{ countOrders }} Venda(s) pendente(s)</h4>
 
             <div ng-show="!showInterface">
-                {{impProdAtual.value}}
                 <img style="margin-left: 25%" src="img/spinner.gif" alt="loading" height="150" width="180">
                 <h4 style="color:#000000;text-align:center;" >{{expOrderStatus}}{{impCustomerStatus}}{{impProdStatus}}</h4>
                 <h4 style="color:#000000;text-align:center;" >
-                    {{expOrder}}{{impProdAtual}}{{impCustomerAtual}}/{{impProdTot}}{{impCustomerTot}}{{expOrderTot}}</h4>
+                    {{procAtual}}/{{procTotal}}</h4>
             </div>
             <div ng-show="getNetState()">
                 <div ng-show="showInterface">

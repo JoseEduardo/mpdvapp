@@ -86,14 +86,14 @@ sqlite.factory('productFactory', function($cordovaSQLite, $rootScope) {
       return $cordovaSQLite.manyExecute(db, arrayQuery).then(
         function(res) {
           console.log(res);
-          $rootScope.impProdAtual += 1;
-          if($rootScope.impProdAtual >= $rootScope.impProdTot){
+          $rootScope.procAtual += 1;
+          if($rootScope.procAtual >= $rootScope.procTotal){
             $rootScope.showInterface = true;
             $rootScope.impProdStatus = "";
-            $rootScope.impProdAtual = 0;
-            $rootScope.countProd = $rootScope.impProdTot;
+            $rootScope.procAtual = 0;
+            $rootScope.countProd = $rootScope.procTotal;
 
-            $rootScope.impProdTot = "";
+            $rootScope.procTotal = "";
           }
         },
         function(err) {
@@ -206,16 +206,16 @@ sqlite.factory('customerFactory', function($cordovaSQLite, $rootScope, customerA
           var queryAddr = "INSERT INTO CUSTOMER_ADDR (CUSTOMER_ID, CUSTOMER_ADDRESS_ID, STREET, REGION) VALUES (?, ?, ?, ?);";
           var valuesAddr = [res.insertId, ADDRESS.customer_address_id, ADDRESS.street, ADDRESS.region];
 
-          $rootScope.impCustomerAtual += 1;
-          if($rootScope.impCustomerAtual >= $rootScope.impCustomerTot){
+          $rootScope.procAtual += 1;
+          if($rootScope.procAtual >= $rootScope.procTotal){
             $rootScope.impCustomerStatus = 'Importando Endereços aguarde.';
-            $rootScope.impCustomerAtual = 0;
+            $rootScope.procAtual = 0;
           }
 
           $cordovaSQLite.execute(db, queryAddr, valuesAddr).then(
             function(resAddr) {
-              $rootScope.impCustomerAtual += 1;
-              if($rootScope.impCustomerAtual >= $rootScope.impCustomerTot){
+              $rootScope.procAtual += 1;
+              if($rootScope.procAtual >= $rootScope.procTotal){
                 console.log('Address OK');
                 $rootScope.impCustomerStatus = "";
                 $rootScope.showInterface = true;
