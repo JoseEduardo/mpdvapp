@@ -16,7 +16,10 @@
                         </div>
                         <ion-option-button class="button-assertive" ng-click="print(x)">
                             Imprimir
-                        </ion-option-button>                  
+                        </ion-option-button> 
+                        <ion-option-button class="button-positive" ng-click="showDetailOrder(x)">
+                            Detalhes
+                        </ion-option-button>               
                     </ion-item>
                 </ion-item>
             </ion-list>
@@ -112,4 +115,32 @@
 </script>
 
 <script id="methods.html" type="text/ng-template">
+</script>
+
+<script id="detailOrder.html" type="text/ng-template">
+   <ion-modal-view>
+      <ion-header-bar>
+       <h1 class="title">Detalhes da Venda</h1>
+      </ion-header-bar>
+      <ion-content>
+        <div class="list" style="margin-bottom: 0px !important;">
+          <label class="item item-input ">
+              <span class="input-label" aria-label="Username" id="_label-2">Met. de Pagamento: {{metPag}}</span>
+           </label>
+          <label class="item item-input ">
+              <span class="input-label" aria-label="Username" id="_label-2">Total da venda: <b>{{ totOrderDetail | currency:"R$" }}</b></span>
+          </label>
+        </div>
+        <ion-item>
+          <ion-list>
+            <ion-item class="item-remove-animate" ng-repeat="x in orderItensDetail">
+              [{{ x.QTY }}]  {{ x.DESC | limitTo:25 }} - {{ x.PRICE | currency:"R$" }}
+            </ion-item>
+          </ion-list>
+        </ion-item>
+        <ion-item>
+            <button ng-click="closeModalOrderDetail()" class=" button button-balanced  button-block ">FECHAR</button>
+        </ion-item>
+      </ion-content>
+    </ion-modal-view>
 </script>

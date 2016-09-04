@@ -293,12 +293,17 @@ angular.module('app.controllers', [])
                 $rootScope.showInterface = true;
               })
               .then(function (res){
-                salesOrderFactory.checkOrder(OrderAt.ID).then(function(x) {
-                  $rootScope.ordersRel = resultOrder;
+                if(res.data == "OK"){
+                  salesOrderFactory.checkOrder(OrderAt.ID).then(function(x) {
+                    $rootScope.ordersRel = resultOrder;
+                    $rootScope.showInterface = true;
+                    $rootScope.procAtual += 1;
+                    $rootScope.countOrders -= 1;
+                  });
+                }else{
+                  alert(res.data+". Confira se é possivel realizar uma venda para o(s) produto(s) pelo Magento.");
                   $rootScope.showInterface = true;
-                  $rootScope.procAtual += 1;
-                  $rootScope.countOrders -= 1;
-                });
+                }
               }); 
             });
           }else{
@@ -320,11 +325,16 @@ angular.module('app.controllers', [])
                 $rootScope.showInterface = true;
               })
               .then(function (res){
-                salesOrderFactory.checkOrder(OrderAt.ID).then(function(x) {
+                if(res.data == "OK"){
+                  salesOrderFactory.checkOrder(OrderAt.ID).then(function(x) {
+                    $rootScope.showInterface = true;
+                    $rootScope.procAtual += 1;
+                    $rootScope.countOrders -= 1;
+                  });
+                }else{
+                  alert(res.data+". Confira se é possivel realizar uma venda para o(s) produto(s) pelo Magento.");
                   $rootScope.showInterface = true;
-                  $rootScope.procAtual += 1;
-                  $rootScope.countOrders -= 1;
-                });
+                }
               });                 
           }
           deferred.resolve();
@@ -339,23 +349,20 @@ angular.module('app.controllers', [])
 
         salesOrderFactory.selectOnlyUnprocessed().then(function(resultOrder) {
           if(resultOrder){
-            $rootScope.procAtual = "";
-            $rootScope.procTotal = "";
-
-            $rootScope.procTotal = "";
-            $rootScope.procAtual = "";
             $rootScope.impProdStatus = "";
             $rootScope.showInterface = true;
 
+            $rootScope.procTotal = 0;
             $rootScope.procAtual = 0;
             $rootScope.procAtualTot = resultOrder.length;
 
-            $rootScope.procAtualStatus = "Exportando Vendas...";
+            $rootScope.expOrderStatus = "Exportando Vendas";
 
             for (var i = 0; i <= resultOrder.length-1; i++) {
               $rootScope.exportSpecificOrder( result, resultOrder[i] );
             };
           }else{
+            $rootScope.showInterface = true;
             alert('Não ha vendas para serem exportadas.');
           }
         });
@@ -480,12 +487,14 @@ angular.module('app.controllers', [])
           $rootScope.imageProd1 = null;
           $rootScope.imageProd1Edt = null;
         }
-        deferred.resolve();
+
+        deferred.resolve(qty);
       });
       return deferred.promise;
     };
 
     $rootScope.addToCart = function(qtyProduct) { 
+      console.log(qtyProduct);
       $rootScope.qtyProd = qtyProduct == "" ? 1 : qtyProduct;
 
       var itemEx = false;
@@ -965,7 +974,7 @@ angular.module('app.controllers', [])
 
 })
 
-.controller('printCtrl', function($scope, $rootScope, $cordovaPrinter, $state, salesOrderFactory, customerFactory, customerAddressFactory, salesOrderItemFactory ) {
+.controller('printCtrl', function($scope, $rootScope, $ionicModal, $cordovaPrinter, $state, salesOrderFactory, customerFactory, customerAddressFactory, salesOrderItemFactory ) {
     $rootScope.cancelLoad = function() {
         $rootScope.loadMode = false;
         $rootScope.OrderIDLoaded = null;
@@ -1006,8 +1015,8 @@ angular.module('app.controllers', [])
                         for (var x = 0; x <= resultOrderItem.length-1; x++) {
                           $rootScope.barcodeNumber = resultOrderItem[x].SKU;
                           $rootScope.searchBarCode( $rootScope.barcodeNumber, resultOrderItem[x].QTY ).then(    
-                            function(){
-                              $rootScope.addToCart();
+                            function(sreturn){
+                              $rootScope.addToCart(sreturn);
                               $state.go('tabsController.venda');
                             }
                           );
@@ -1050,7 +1059,7 @@ angular.module('app.controllers', [])
                   function (isAvailable, installedAppIds) {
                       if (isAvailable) {
                         var page = document.getElementById('repForPrint');
-                        cordova.plugins.printer.print(page, 'Document.html', function () {
+                        cordova.plugins.printer.print(page, 'Document.html', { name: 'order' }, function () {
 
                         });
                       }else{
@@ -1068,6 +1077,27 @@ angular.module('app.controllers', [])
 
     }
 
+    $ionicModal.fromTemplateUrl('detailOrder.html', {
+      scope: $scope,
+      animation: 'slide-in-up'
+    }).then(function(modal) {
+      $scope.modalOrderDetail = modal;
+    });
+
+    $scope.closeModalOrderDetail = function() {
+      $scope.modalOrderDetail.hide();
+    };
+
+    $scope.showDetailOrder = function(x) {
+      $scope.totOrderDetail = x.TOT_VLR;
+      $scope.metPag = x.PAYMENT_METHOD;
+
+      salesOrderFactory.selectItemsOrder(x.ID).then(function(items) {
+          $scope.modalOrderDetail.show();
+          $scope.orderItensDetail = items;
+      });
+
+    };
 })
 
 .controller("barcodeCtrl", function($scope, $rootScope, $cordovaBarcodeScanner) {

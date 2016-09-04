@@ -501,6 +501,28 @@ sqlite.factory('salesOrderFactory', function($cordovaSQLite) {
         }
       );
     },
+    selectItemsOrder : function(idOrder){
+      var query = "SELECT * FROM SALESORDER_ITEM WHERE ORDER_ID = '"+idOrder+"'"; 
+
+      return $cordovaSQLite.execute(db, query).then(
+        function(res) {
+          if (res.rows.length > 0) {
+            var returArray = [];
+            for (var i = 0; i <= res.rows.length-1; i++) {
+              returArray.push( res.rows.item(i) );
+            };
+
+            return returArray;
+          } else {
+            return null;
+          }
+        },
+        function(err) {
+          console.log(err);
+          return null;
+        }
+      );
+    },
     checkOrder : function(id){
       return $cordovaSQLite.execute(db, "UPDATE SALESORDER SET SYNC = 'S' WHERE ID = '"+id+"'").then(
         function(res) {

@@ -8,21 +8,22 @@ class ZTSoftware_MagePDV_Model_Api extends Mage_Api_Model_Resource_Abstract
 
         	foreach ($products as $prod) {
         		$product = Mage::getModel('catalog/product')->load($prod->getId());
+        		if( $product->getStatus() == '1' ){
+	        		$retArrayTmp = array(
+			                "product_id" => $product->getId(),
+			                "sku" => $product->getSku(),
+			                "cod_barra" => $product->getData('codigobarra'),
+			                "name" => $product->getName(),
+			                "price" => $product->getPrice(),
+			                "stock" => $product->getStockItem()->getQty(),
+			                "image1" => $product->getImageUrl(),
+			                "image2" => $product->getImageUrl(),
+			                "cod_barras" => $product->getData('codigobarra'),
+			                "group_price" => $product->getData('customer_groups_price')
+	        			);
 
-        		$retArrayTmp = array(
-		                "product_id" => $product->getId(),
-		                "sku" => $product->getSku(),
-		                "cod_barra" => $product->getData('codigobarra'),
-		                "name" => $product->getName(),
-		                "price" => $product->getPrice(),
-		                "stock" => $product->getStockItem()->getQty(),
-		                "image1" => $product->getImageUrl(),
-		                "image2" => $product->getImageUrl(),
-		                "cod_barras" => $product->getData('codigobarra'),
-		                "group_price" => $product->getData('customer_groups_price')
-        			);
-
-        		array_push($retArray, $retArrayTmp);
+	        		array_push($retArray, $retArrayTmp);
+        		}
         	}
 
         	return $retArray;
