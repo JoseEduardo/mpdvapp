@@ -4,12 +4,14 @@ var sqlite = angular.module('sqlite', ['ionic', 'ngCordova']);
 sqlite.run(function($ionicPlatform, $cordovaSQLite) {
   $ionicPlatform.ready(function() {
     if (window.cordova) {
+      console.log('a');
       db = $cordovaSQLite.openDB({ name: "magepdv.db", location: 'default' }); //device
     }else{
+      console.log('b');
       db = window.openDatabase("magepdv.db", '1', 'magepdv', 1024 * 1024 * 100); // browser
     }
 
-    if('false' == 'True'){
+    if('false' == 'false2'){
       $cordovaSQLite.execute(db, "DROP TABLE CUSTOMER");
       $cordovaSQLite.execute(db, "DROP TABLE CUSTOMER_ADDR");
       $cordovaSQLite.execute(db, "DROP TABLE SALESORDER_ITEM");

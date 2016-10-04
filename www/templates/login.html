@@ -7,7 +7,7 @@
                     <span class="input-label">Empresa</span>
                     <input type="text" ng-model="empUser" placeholder="">
                 </label>
-                <button id="login-button8" ng-click="getConfigs(empUser)" class=" button button-stable  button-block ">Configurar</button>
+                <button id="login-button8" ng-disabled="showLogin" ng-click="getConfigs(empUser)" class=" button button-stable  button-block ">Configurar</button>
                 
             </div>
             <div ng-controller="APICtrl" ng-show="showLogin">
@@ -15,15 +15,15 @@
                     <ion-list id="login-list1">
                         <label class="item item-input " id="login-input1">
                             <span class="input-label">Username</span>
-                            <input type="text" ng-model="loginUser" placeholder="">
+                            <input id="LoginUsername" type="text" ng-model="loginUser" placeholder="">
                         </label>
                         <label class="item item-input " id="login-input2">
                             <span class="input-label">Password</span>
-                            <input type="password" ng-model="loginPassword" placeholder="">
+                            <input id="LoginPassword" type="password" ng-model="loginPassword" placeholder="">
                         </label>
                     </ion-list>
                     <div class="spacer" style="height: 40px;"></div>
-                    <button id="login-button8" ng-click="doLogin(loginUser, loginPassword)" class=" button button-stable  button-block ">Log in</button>
+                    <button id="login-button" ng-click="doLogin(loginUser, loginPassword)" class=" button button-stable  button-block ">Log in</button>
                 </div>
             </div>
         </form>

@@ -200,11 +200,12 @@ angular.module('app.controllers', [])
         $rootScope.impProdStatus = "Conectando com o Servidor.";
         $http.get(URLPHPCTRL + '/products.php?'+ params )
           .success(function (data, status, headers, config) {
-            productFactory.deleteAll();
-
             $rootScope.procTotal = data.length;
             $rootScope.procAtual = 0;
             $rootScope.impProdStatus = "Importando Produtos aguarde.";
+            
+            productFactory.deleteAll();
+
             for (var i = 0; i <= data.length-1; i++) {
               $scope.saveProduct(data[i], result.IMG_IMP);
             };
@@ -299,6 +300,8 @@ angular.module('app.controllers', [])
                     $rootScope.showInterface = true;
                     $rootScope.procAtual += 1;
                     $rootScope.countOrders -= 1;
+
+                    $rootScope.loadAllOrders();
                   });
                 }else{
                   alert(res.data+". Confira se é possivel realizar uma venda para o(s) produto(s) pelo Magento.");
@@ -330,6 +333,8 @@ angular.module('app.controllers', [])
                     $rootScope.showInterface = true;
                     $rootScope.procAtual += 1;
                     $rootScope.countOrders -= 1;
+
+                    $rootScope.loadAllOrders();
                   });
                 }else{
                   alert(res.data+". Confira se é possivel realizar uma venda para o(s) produto(s) pelo Magento.");
@@ -493,8 +498,7 @@ angular.module('app.controllers', [])
       return deferred.promise;
     };
 
-    $rootScope.addToCart = function(qtyProduct) { 
-      console.log(qtyProduct);
+    $rootScope.addToCart = function(qtyProduct) {
       $rootScope.qtyProd = qtyProduct == "" ? 1 : qtyProduct;
 
       var itemEx = false;
@@ -502,15 +506,20 @@ angular.module('app.controllers', [])
       for(i = 0; i < $rootScope.cartItens.length; i++) { 
         if($rootScope.cartItens[i].PRODUCT_ID == $rootScope.currentItem.PRODUCT_ID){
           uptQTY = Number($rootScope.cartItens[i].QTY)+Number($rootScope.qtyProd);
+
+          //NAO ESTA CONTROLANDO STOCK
           if( $rootScope.cartItens[i].STOCK >= uptQTY ){
             $rootScope.cartItens[i].QTY = uptQTY;
           }else{
             $scope.noStock = true;
           }
+          //NAO ESTA CONTROLANDO STOCK
+          $rootScope.cartItens[i].QTY = uptQTY;
           itemEx = true;
-        } 
+        }
 
         $rootScope.totCar += Number($rootScope.cartItens[i].QTY)*Number($rootScope.cartItens[i].PRICE);
+        console.log( $rootScope.totCar );
       }
 
       if(itemEx == false){
@@ -663,6 +672,7 @@ angular.module('app.controllers', [])
     };
 
     $scope.acceptModal = function(qtyItemEDT) {
+      $rootScope.totCar = 0;
       for(i = 0; i < $rootScope.cartItens.length; i++) { 
         if($rootScope.cartItens[i] == $rootScope.itemForEdit){
           $rootScope.cartItens[i].QTY = qtyItemEDT;
@@ -698,13 +708,15 @@ angular.module('app.controllers', [])
 })
 
 .controller('clienteCtrl', function($scope, $rootScope, $ionicModal, customerFactory, customerAddressFactory, customerGroupFactory) {
-    $rootScope.customer = [];
-    $rootScope.addressCustomer = [];
-    $scope.currentItem = null;
-    $rootScope.customerDocument = [];
-    $scope.taxIsUsed = false;
+    if($rootScope.customer != undefined){
+      $rootScope.customer = [];
+      $rootScope.addressCustomer = [];
+      $scope.currentItem = null;
+      $rootScope.customerDocument = [];
+      $scope.taxIsUsed = false;
 
-    $rootScope.insCustomer = [];
+      $rootScope.insCustomer = [];
+    }
 
     $rootScope.searchCustomer = function(email) {
       customerFactory.select(email).then(function(result) {
