@@ -568,9 +568,6 @@ angular.module('app.controllers', [])
     $rootScope.loadAllOrders = function (){
       ionic.Platform.ready(function(){
         salesOrderFactory.selectWithData().then(function(resultOrder) {
-          $rootScope.customerDocument = [];
-
-          $rootScope.totCar = "";
           $rootScope.ordersRel = resultOrder;
         });
       });
@@ -708,7 +705,7 @@ angular.module('app.controllers', [])
 })
 
 .controller('clienteCtrl', function($scope, $rootScope, $ionicModal, customerFactory, customerAddressFactory, customerGroupFactory) {
-    if($rootScope.customer != undefined){
+    if($rootScope.customerDocument == undefined){
       $rootScope.customer = [];
       $rootScope.addressCustomer = [];
       $scope.currentItem = null;
@@ -717,6 +714,7 @@ angular.module('app.controllers', [])
 
       $rootScope.insCustomer = [];
     }
+    console.log( $rootScope.customerDocument );
 
     $rootScope.searchCustomer = function(email) {
       customerFactory.select(email).then(function(result) {
@@ -803,19 +801,19 @@ angular.module('app.controllers', [])
       $rootScope.ctrlArray[11] = 'Tabela Loja Virtual';
 
       $scope.modalCadastro.show();
-      /*
-      customerGroupFactory.select().then(function(result){
-        $rootScope.groupscustomer = result;
-        $rootScope.tipoPess = [{id:'pf', desc:'Pessoa Fisica'}, {id:'pj', desc:'Pessoa Juridica'}];
 
-        $rootScope.ctrlArray = [];
-        for (var i = 0; i <= result.length-1; i++) {
-          $rootScope.ctrlArray[ result[i].MTP_ID ] = result[i].MTP_DESC;
-        };
+      //customerGroupFactory.select().then(function(result){
+      //  $rootScope.groupscustomer = result;
+      //  $rootScope.tipoPess = [{id:'pf', desc:'Pessoa Fisica'}, {id:'pj', desc:'Pessoa Juridica'}];
 
-        $scope.modalCadastro.show();
-      });
-      */
+      //  $rootScope.ctrlArray = [];
+      //  for (var i = 0; i <= result.length-1; i++) {
+      //    $rootScope.ctrlArray[ result[i].MTP_ID ] = result[i].MTP_DESC;
+      //  };
+
+      //  $scope.modalCadastro.show();
+      //});
+      
     }
 
     $scope.checkCustomer = function(document) {
@@ -982,7 +980,7 @@ angular.module('app.controllers', [])
       insCustomer = [];
       $scope.modalCadastro.hide();
     }
-
+console.log( $rootScope.customerDocument );
 
 })
 

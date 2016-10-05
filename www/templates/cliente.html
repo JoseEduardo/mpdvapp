@@ -13,7 +13,9 @@
                 <ion-item>{{ x.STREET }} - {{ x.REGION }}</ion-item>
             </ion-list>
         </div>
-        <button ng-click="showInsertCustomerMenu()" class=" button button-balanced  button-block ">CADASTRAR</button>
+        <div ng-show="!loadMode">
+            <button ng-click="showInsertCustomerMenu()" class=" button button-balanced  button-block ">CADASTRAR</button>
+        </div>
     </ion-content>
 </ion-view>
 
