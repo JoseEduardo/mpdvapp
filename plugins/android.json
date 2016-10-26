@@ -45,6 +45,9 @@
         },
         "cordova-plugin-network-information": {
             "PACKAGE_NAME": "com.ionicframework.magepdv328961"
+        },
+        "cordova-plugin-appsee": {
+            "PACKAGE_NAME": "com.ionicframework.magepdv328961"
         }
     },
     "dependent_plugins": {

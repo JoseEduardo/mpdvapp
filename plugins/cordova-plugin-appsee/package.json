@@ -1,0 +1,22 @@
+{
+  "name": "cordova-plugin-appsee",
+  "version": "2.3.1",
+  "description": "Appsee Mobile Analytics",
+  "cordova": {
+    "id": "cordova-plugin-appsee",
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  },
+
+  "keywords": [
+    "analytics",
+    "appsee",
+    "ecosystem:cordova",
+    "cordova-ios",
+    "cordova-android"
+  ],
+  "author": "Appsee",
+  "license": "Commercial"
+}

@@ -198,14 +198,14 @@ angular.module('app.controllers', [])
         $scope.result = "";
         $rootScope.showInterface = false;
         $rootScope.impProdStatus = "Conectando com o Servidor.";
+
         $http.get(URLPHPCTRL + '/products.php?'+ params )
           .success(function (data, status, headers, config) {
             $rootScope.procTotal = data.length;
             $rootScope.procAtual = 0;
             $rootScope.impProdStatus = "Importando Produtos aguarde.";
-            
-            productFactory.deleteAll();
 
+            productFactory.deleteAll();
             for (var i = 0; i <= data.length-1; i++) {
               $scope.saveProduct(data[i], result.IMG_IMP);
             };
@@ -220,17 +220,13 @@ angular.module('app.controllers', [])
             $rootScope.impProdStatus = "";
             $rootScope.showInterface = true;
             alert( 'Ocorreu um erro ao se conectar com o Servidor.' );
-          })
-          .then(function (result) {
-            things = result.data;
-        });
+          });
       });
     }
 
     $scope.saveProduct = function (data, impIMG) {
       var img1 = data.image1;
       productFactory.insert(data.product_id, data.name, data.cod_barra, data.sku, data.image1, data.image2, data.price, data.stock, data.group_price);
-
       if(impIMG == "true"){
         $scope.doSaveImagesProduct(img1, data.product_id+"/1");
       }

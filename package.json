@@ -31,7 +31,8 @@
     "cordova-plugin-file-transfer",
     "de.appplant.cordova.plugin.printer",
     "cordova-plugin-crosswalk-webview",
-    "cordova-plugin-network-information"
+    "cordova-plugin-network-information",
+    "cordova-plugin-appsee"
   ],
   "cordovaPlatforms": [
     "android",

@@ -87,6 +87,7 @@ sqlite.factory('productFactory', function($cordovaSQLite, $rootScope) {
 
       return $cordovaSQLite.manyExecute(db, arrayQuery).then(
         function(res) {
+          alert('b3');
           console.log(res);
           $rootScope.procAtual += 1;
           if($rootScope.procAtual >= $rootScope.procTotal){
@@ -97,8 +98,10 @@ sqlite.factory('productFactory', function($cordovaSQLite, $rootScope) {
 
             $rootScope.procTotal = "";
           }
+          alert('b4');
         },
         function(err) {
+          alert(err);
           console.log(err);
         }
       );

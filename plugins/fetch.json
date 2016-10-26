@@ -111,5 +111,13 @@
         },
         "is_top_level": true,
         "variables": {}
+    },
+    "cordova-plugin-appsee": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-appsee"
+        },
+        "is_top_level": true,
+        "variables": {}
     }
 }
