@@ -89,7 +89,7 @@ sqlite.factory('productFactory', function($cordovaSQLite, $rootScope) {
       var query = "INSERT INTO PRODUCT (PRODUCT_ID, NAME, COD_BARRA, SKU, IMG_1, IMG_2, PRICE, STOCK) VALUES ('"+productID+"', '"+name+"', '"+cod_barra+"', '"+sku+"', '"+img1+"', '"+img2+"', '"+price+"', '"+stock+"');";
       query += "INSERT INTO PRODUCT_PRICE (PRODUCT_ID, GROUP_ID, PRICE) VALUES ('"+productID+"', '"+key+"', '"+value+"');";
       
-      //return $cordovaSQLite.execute(db, query, "").then(
+      //return $cordovaSQLite.manyExecute(db, arrayQuery).then(
       return $cordovaSQLite.execute(db, query, "").then(
         function(res) {
           alert('b3');
