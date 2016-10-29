@@ -198,15 +198,16 @@ angular.module('app.controllers', [])
         $scope.result = "";
         $rootScope.showInterface = false;
         $rootScope.impProdStatus = "Conectando com o Servidor.";
-
+console.log('22');
         $http.get(URLPHPCTRL + '/products.php?'+ params )
           .success(function (data, status, headers, config) {
             $rootScope.procTotal = data.length;
             $rootScope.procAtual = 0;
             $rootScope.impProdStatus = "Importando Produtos aguarde.";
-
+console.log('33');
             productFactory.deleteAll();
             for (var i = 0; i <= data.length-1; i++) {
+              console.log('44');
               $scope.saveProduct(data[i], result.IMG_IMP);
             };
 
@@ -226,14 +227,25 @@ angular.module('app.controllers', [])
 
     $scope.saveProduct = function (data, impIMG) {
       var img1 = data.image1;
-      productFactory.insert(data.product_id, data.name, data.cod_barra, data.sku, data.image1, data.image2, data.price, data.stock, data.group_price);
+      try {
+        productFactory.insert(data.product_id, data.name, data.cod_barra, data.sku, data.image1, data.image2, data.price, data.stock, data.group_price);
+      }catch(err) {
+        console.log( err );
+      }
+console.log( impIMG );
       if(impIMG == "true"){
-        $scope.doSaveImagesProduct(img1, data.product_id+"/1");
+        try {
+          $scope.doSaveImagesProduct(img1, data.product_id+"/1");
+        }catch(err) {
+          console.log(img1);
+        }
       }
     }
 
     $scope.doSaveImagesProduct = function (url, name) {
+      console.log( 'kkkkk' );
       ionic.Platform.ready(function(){
+        console.log( 'ggg' );
         if($cordovaDevice.getPlatform() == 'iOS'){
            fileDeviceDir = cordova.file.dataDirectory;
         }else{
@@ -244,19 +256,25 @@ angular.module('app.controllers', [])
         var trustHosts = true;
         var options = {};
 
+        console.log( targetPath );
+url = 'http://vanvoorhisstorage.com/images/10x15.jpg';
         $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
           .then(function(result) {
+            console.log( 'd1' );
             $rootScope.procAtual += 1;
             if($rootScope.procAtual >= $rootScope.procTotal){
               $rootScope.showInterface = true;
             }
           }, function(err) {
+            console.log( 'd2' );
             $rootScope.procAtual += 1;
             if($rootScope.procAtual >= $rootScope.procTotal){
               $rootScope.showInterface = true;
             }
           }, function (progress) {
+            console.log( progress );
         });
+          console.log( '9999' );
       });
     }
 

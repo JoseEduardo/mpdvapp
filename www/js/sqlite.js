@@ -79,20 +79,14 @@ sqlite.factory('configurationFactory', function($cordovaSQLite) {
 sqlite.factory('productFactory', function($cordovaSQLite, $rootScope) {
   return {
     insert : function(productID, name, cod_barra, sku, img1, img2, price, stock, group_price){
-      /*
       var arrayQuery = [];
       arrayQuery.push("INSERT INTO PRODUCT (PRODUCT_ID, NAME, COD_BARRA, SKU, IMG_1, IMG_2, PRICE, STOCK) VALUES ('"+productID+"', '"+name+"', '"+cod_barra+"', '"+sku+"', '"+img1+"', '"+img2+"', '"+price+"', '"+stock+"');");
       angular.forEach(group_price, function(value, key) {
         arrayQuery.push("INSERT INTO PRODUCT_PRICE (PRODUCT_ID, GROUP_ID, PRICE) VALUES ('"+productID+"', '"+key+"', '"+value+"');");
       });
-      */
-      var query = "INSERT INTO PRODUCT (PRODUCT_ID, NAME, COD_BARRA, SKU, IMG_1, IMG_2, PRICE, STOCK) VALUES ('"+productID+"', '"+name+"', '"+cod_barra+"', '"+sku+"', '"+img1+"', '"+img2+"', '"+price+"', '"+stock+"');";
-      query += "INSERT INTO PRODUCT_PRICE (PRODUCT_ID, GROUP_ID, PRICE) VALUES ('"+productID+"', '"+key+"', '"+value+"');";
       
-      //return $cordovaSQLite.manyExecute(db, arrayQuery).then(
-      return $cordovaSQLite.execute(db, query, "").then(
+      return $cordovaSQLite.manyExecute(db, arrayQuery).then(
         function(res) {
-          alert('b3');
           console.log(res);
           $rootScope.procAtual += 1;
           if($rootScope.procAtual >= $rootScope.procTotal){
@@ -103,7 +97,6 @@ sqlite.factory('productFactory', function($cordovaSQLite, $rootScope) {
 
             $rootScope.procTotal = "";
           }
-          alert('b4');
         },
         function(err) {
           alert(err);
