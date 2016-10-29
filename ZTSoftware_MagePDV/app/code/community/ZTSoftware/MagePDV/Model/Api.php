@@ -9,6 +9,13 @@ class ZTSoftware_MagePDV_Model_Api extends Mage_Api_Model_Resource_Abstract
         	foreach ($products as $prod) {
         		$product = Mage::getModel('catalog/product')->load($prod->getId());
         		if( $product->getStatus() == '1' ){
+              $url = "";
+              $_image = $product->getMediaGalleryImages();
+              if (count( $_image ) > 0) {
+                $_image = $_image->getFirstItem();
+                $url = $_image->getData('url');
+              }               
+              
 	        		$retArrayTmp = array(
 			                "product_id" => $product->getId(),
 			                "sku" => $product->getSku(),
@@ -16,8 +23,8 @@ class ZTSoftware_MagePDV_Model_Api extends Mage_Api_Model_Resource_Abstract
 			                "name" => $product->getName(),
 			                "price" => $product->getPrice(),
 			                "stock" => $product->getStockItem()->getQty(),
-			                "image1" => $product->getImageUrl(),
-			                "image2" => $product->getImageUrl(),
+			                "image1" => $url,
+			                "image2" => $url,
 			                "cod_barras" => $product->getData('codigobarra'),
 			                "group_price" => $product->getData('customer_groups_price')
 	        			);
