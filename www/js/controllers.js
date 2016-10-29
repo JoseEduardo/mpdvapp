@@ -243,9 +243,7 @@ console.log( impIMG );
     }
 
     $scope.doSaveImagesProduct = function (url, name) {
-      console.log( 'kkkkk' );
       ionic.Platform.ready(function(){
-        console.log( 'ggg' );
         if($cordovaDevice.getPlatform() == 'iOS'){
            fileDeviceDir = cordova.file.dataDirectory;
         }else{
@@ -256,25 +254,25 @@ console.log( impIMG );
         var trustHosts = true;
         var options = {};
 
-        console.log( targetPath );
+        $rootScope.procTotal = 0;
+        $rootScope.procAtual = 0;
+        $rootScope.impProdStatus = "Importando Imagens, aguarde...";
+        
 url = 'http://vanvoorhisstorage.com/images/10x15.jpg';
         $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
           .then(function(result) {
-            console.log( 'd1' );
+
             $rootScope.procAtual += 1;
             if($rootScope.procAtual >= $rootScope.procTotal){
               $rootScope.showInterface = true;
             }
           }, function(err) {
-            console.log( 'd2' );
             $rootScope.procAtual += 1;
             if($rootScope.procAtual >= $rootScope.procTotal){
               $rootScope.showInterface = true;
             }
           }, function (progress) {
-            console.log( progress );
         });
-          console.log( '9999' );
       });
     }
 
