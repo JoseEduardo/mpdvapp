@@ -198,16 +198,16 @@ angular.module('app.controllers', [])
         $scope.result = "";
         $rootScope.showInterface = false;
         $rootScope.impProdStatus = "Conectando com o Servidor.";
-console.log('22');
+
         $http.get(URLPHPCTRL + '/products.php?'+ params )
           .success(function (data, status, headers, config) {
             $rootScope.procTotal = data.length;
             $rootScope.procAtual = 0;
             $rootScope.impProdStatus = "Importando Produtos aguarde.";
-console.log('33');
+
             productFactory.deleteAll();
+            $rootScope.imgsImport = [];
             for (var i = 0; i <= data.length-1; i++) {
-              console.log('44');
               $scope.saveProduct(data[i], result.IMG_IMP);
             };
 
@@ -226,53 +226,90 @@ console.log('33');
     }
 
     $scope.saveProduct = function (data, impIMG) {
+      $rootScope.impIMG = impIMG;
       var img1 = data.image1;
+
+      var objImgsProd = new Object();
+      objImgsProd.url = img1;
+      objImgsProd.idp = data.product_id;
+
+      $rootScope.imgsImport.push(objImgsProd);
       try {
         productFactory.insert(data.product_id, data.name, data.cod_barra, data.sku, data.image1, data.image2, data.price, data.stock, data.group_price);
       }catch(err) {
         console.log( err );
       }
-console.log( impIMG );
-      if(impIMG == "true"){
-        try {
-          $scope.doSaveImagesProduct(img1, data.product_id+"/1");
-        }catch(err) {
-          console.log(img1);
-        }
+    }
+
+    $rootScope.doProcImagesProd = function (index){
+      $rootScope.procTotal = $rootScope.imgsImport.length;
+      $rootScope.procAtual = $rootScope.procAtual+10;
+      $rootScope.impProdStatus = "Importando Imagens, aguarde...";
+
+      var maxLengthImgImp = $rootScope.imgsImport.length;
+      $rootScope.procAtualImgPrd = 0;
+      $rootScope.maxIdxProd = 10;
+      $rootScope.prodIndex = index;
+      if( index < maxLengthImgImp ){
+        var maxIndex = index+$rootScope.maxIdxProd;
+        maxIndex = maxIndex > maxLengthImgImp ? maxLengthImgImp : maxIndex;
+        for (var i = index; i <= maxIndex; i++) {
+          var ObjImg = $rootScope.imgsImport[i];
+          try {  
+            $scope.doSaveImagesProduct(ObjImg.url, ObjImg.idp+"/1");
+          }catch(err) {
+            console.log(err);
+          }
+        };
+      }else{
+        $rootScope.showInterface = true;
       }
+
     }
 
     $scope.doSaveImagesProduct = function (url, name) {
       ionic.Platform.ready(function(){
-        if($cordovaDevice.getPlatform() == 'iOS'){
-           fileDeviceDir = cordova.file.dataDirectory;
-        }else{
-           fileDeviceDir = cordova.file.externalRootDirectory;
+        try{
+          if($cordovaDevice.getPlatform() == 'iOS'){
+             fileDeviceDir = cordova.file.dataDirectory;
+          }else{
+             fileDeviceDir = cordova.file.externalRootDirectory;
+          }
+
+          var targetPath = fileDeviceDir + "magepdv/" + name + ".jpg";
+          var trustHosts = true;
+          var options = {};
+          if( url != "" ){
+            console.log( url );
+            url = url.replace("https", "http");
+            $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
+              .then(function(result) {
+                $rootScope.procAtualImgPrd += 1;
+                if($rootScope.procAtualImgPrd >= $rootScope.maxIdxProd){
+                  $rootScope.doProcImagesProd( ($rootScope.prodIndex+$rootScope.maxIdxProd)+1 );
+                }
+              }, function(err) {
+                console.log(err);
+                $rootScope.procAtualImgPrd += 1;
+                if($rootScope.procAtualImgPrd >= $rootScope.maxIdxProd){
+                  $rootScope.doProcImagesProd( ($rootScope.prodIndex+$rootScope.maxIdxProd)+1 );
+                }
+              }, function (progress) {
+            });
+          }else{
+            $rootScope.procAtualImgPrd += 1;
+            if($rootScope.procAtualImgPrd >= $rootScope.maxIdxProd){
+              $rootScope.doProcImagesProd( ($rootScope.prodIndex+$rootScope.maxIdxProd)+1 );
+            }            
+          }
+        }catch(err) {
+          console.log( err );
+          $rootScope.procAtualImgPrd += 1;
+          if($rootScope.procAtualImgPrd >= $rootScope.maxIdxProd){
+            $rootScope.doProcImagesProd( ($rootScope.prodIndex+$rootScope.maxIdxProd)+1 );
+          }          
         }
 
-        var targetPath = fileDeviceDir + "magepdv/" + name + ".jpg";
-        var trustHosts = true;
-        var options = {};
-
-        $rootScope.procTotal = 0;
-        $rootScope.procAtual = 0;
-        $rootScope.impProdStatus = "Importando Imagens, aguarde...";
-        
-url = 'http://vanvoorhisstorage.com/images/10x15.jpg';
-        $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
-          .then(function(result) {
-
-            $rootScope.procAtual += 1;
-            if($rootScope.procAtual >= $rootScope.procTotal){
-              $rootScope.showInterface = true;
-            }
-          }, function(err) {
-            $rootScope.procAtual += 1;
-            if($rootScope.procAtual >= $rootScope.procTotal){
-              $rootScope.showInterface = true;
-            }
-          }, function (progress) {
-        });
       });
     }
 

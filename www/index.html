@@ -1,108 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
-    <title></title>
-   
-    <script src="lib/ionic/js/ionic.bundle.js"></script>
-    <!-- cordova script (this will be a 404 during development) -->
-    <script src="cordova.js"></script>
-    <script src="lib/ngCordova/dist/ng-cordova.js"></script>
-    <script src="lib/angular-md5/angular-md5.min.js"></script>
-    <script src="lib/barcode/jquery-1.9.0.min.js"></script>
-
-    <script src="lib/quagga/dist/quagga.js" type="text/javascript"></script>
-    
-    <!-- IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above
-    <link href="css/ionic.app.css" rel="stylesheet">
-    -->
-    
-    <link href="lib/ionic/css/ionic.css" rel="stylesheet">
-    
-    <style type="text/css">
-      .platform-ios .manual-ios-statusbar-padding{
-        padding-top:20px;
-      }
-      .manual-remove-top-padding{
-        padding-top:0px; 
-      }
-      .manual-remove-top-padding .scroll{
-        padding-top:0px !important;
-      }
-      ion-list.manual-list-fullwidth div.list, .list.card.manual-card-fullwidth {
-        margin-left:-10px;
-        margin-right:-10px;
-      }
-      ion-list.manual-list-fullwidth div.list > .item, .list.card.manual-card-fullwidth > .item {
-        border-radius:0px;
-        border-left:0px;
-        border-right: 0px;
-      }
-    </style>
-
-    <script src="js/app.js"></script>
-    <script src="js/controllers.js"></script>
-    <script src="js/routes.js"></script>
-    <script src="js/services.js"></script>
-    <script src="js/directives.js"></script>
-    <script src="js/sqlite.js"></script> 
-
-    <!-- Only required for Tab projects w/ pages in multiple tabs 
-    <script src="lib/ionicuirouter/ionicUIRouter.js"></script>
-    -->
-
-  </head>
-  <body ng-app="app" ng-controller="APICtrl" animation="slide-left-right-ios7">
-  <div>
-    <ion-side-menus enable-menu-with-back-views="false" data-componentid="side-menu21">
-        <ion-side-menu-content>
-            <ion-nav-bar class="bar-stable">
-                <ion-nav-back-button></ion-nav-back-button>
-                <ion-nav-buttons side="left">
-                    <button class="button button-icon button-clear ion-navicon" menu-toggle="left"></button>
-                </ion-nav-buttons>
-            </ion-nav-bar>
-            <ion-nav-view></ion-nav-view>
-        </ion-side-menu-content>
-        <ion-side-menu side="left" id="side-menu21">
-            <ion-header-bar class="bar-stable">
-                <div class="title">Menu</div>
-            </ion-header-bar>
-            <ion-content padding="false" class="side-menu-left has-header">
-                <form id="menu-form8" class="list " data-componentid="form8">
-                    <ion-item>
-                        <ion-checkbox ng-model="conn.IMG_IMP" ng-true-value="'true'" ng-false-value="'false'">Importar Imagens</ion-checkbox>
-                    </ion-item>
-                    <ion-item class="range range-dark " id="menu-range2" data-componentid="range2">Estoque P.
-                        <input type="range" ng-model="conn.STOCK" value="50" min="0" max="100">
-                    </ion-item>
-                    <label class="item item-input " id="menu-input9" data-componentid="input9">
-                        <input type="text" ng-model="conn.WS_URL" placeholder="URL">
-                    </label>
-                    <label class="item item-input " id="menu-input8" data-componentid="input8">
-                        <input type="text" ng-model="conn.WS_LOGIN" placeholder="Usuario WS">
-                    </label>
-                    <label class="item item-input " id="menu-input7" data-componentid="input7">
-                        <input type="password" ng-model="conn.WS_PASS" placeholder="Senha WS">
-                    </label>
-                    <label class="item item-input " id="menu-input10" data-componentid="input10">
-                        <input type="text" ng-model="conn.STORE_ID" placeholder="Codigo da Loja">
-                    </label>
-                    <!--ion-item>
-                        <label class="item item-input item-select">
-                            <div class="input-label">
-                                Cod Bar
-                            </div>
-                            <select ng-model="conn.BARCODE" ng-options="item for item in barcodesOpts">
-                            </select>
-                        </label>    
-                    </ion-item-->          
-                    <button id="venda-button11" ng-click="saveConfiguration()" class=" button button-stable  button-block ">SALVAR</button>
-                </form>
-            </ion-content>
-        </ion-side-menu>
-    </ion-side-menus>
-</div>
+   <title>MagePDV</title>
+   <script>
+     window.location='./main.html';
+   </script>
+  <body>
+    <img style="margin-left: 25%" src="img/mini_logo_magento.jpg" alt="loading">
   </body>
 </html>

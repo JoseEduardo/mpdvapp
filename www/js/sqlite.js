@@ -90,12 +90,17 @@ sqlite.factory('productFactory', function($cordovaSQLite, $rootScope) {
           console.log(res);
           $rootScope.procAtual += 1;
           if($rootScope.procAtual >= $rootScope.procTotal){
-            $rootScope.showInterface = true;
-            $rootScope.impProdStatus = "";
-            $rootScope.procAtual = 0;
             $rootScope.countProd = $rootScope.procTotal;
+            $rootScope.procAtual = 0;
+            if($rootScope.impIMG == "true"){
+              $rootScope.doProcImagesProd(0);
+            }else{
+              $rootScope.showInterface = true;
+              $rootScope.impProdStatus = "";
 
-            $rootScope.procTotal = "";
+              $rootScope.procTotal = 0;
+            }
+
           }
         },
         function(err) {
