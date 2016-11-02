@@ -262,6 +262,9 @@ angular.module('app.controllers', [])
           }
         };
       }else{
+        $rootScope.impProdStatus = "";
+        $rootScope.procTotal = 0;
+        $rootScope.procAtual = 0;
         $rootScope.showInterface = true;
       }
 
@@ -406,7 +409,7 @@ angular.module('app.controllers', [])
             $rootScope.impProdStatus = "";
             $rootScope.showInterface = true;
 
-            $rootScope.procTotal = 0;
+            $rootScope.procTotal = resultOrder.length;
             $rootScope.procAtual = 0;
             $rootScope.procAtualTot = resultOrder.length;
 

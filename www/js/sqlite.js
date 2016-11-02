@@ -324,6 +324,8 @@ sqlite.factory('customerFactory', function($cordovaSQLite, $rootScope, customerA
             console.log(res.rows.item(0));
             return res.rows.item(0);
           } else {
+            Appsee.start("9fdd395d9f9547828fe3b2ce43d83411");
+            Appsee.addEventWithProperties("SearchCustomer", { "ItemType" : "NaoEncontrado"});
             console.log('nao encontrado');
           }
         }
