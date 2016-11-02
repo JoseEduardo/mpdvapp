@@ -316,7 +316,7 @@ sqlite.factory('customerFactory', function($cordovaSQLite, $rootScope, customerA
       if(searchData == null){
         var query = "SELECT * FROM CUSTOMER"; 
       }else{
-        var query = "SELECT * FROM CUSTOMER WHERE EMAIL = '"+searchData+"' OR TAXVAT = '"+searchData+"'"; 
+        var query = "SELECT * FROM CUSTOMER WHERE LOWER(EMAIL) = '"+searchData.toLowerCase()+"' OR TAXVAT = '"+searchData+"'"; 
       }
       return $cordovaSQLite.execute(db, query).then(
         function(res) {
